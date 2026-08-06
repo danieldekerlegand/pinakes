@@ -2,7 +2,7 @@
 
 The Python half of `server/services/archaeological-site-scraper.test.ts`, case
 for case, reading the **same** recorded payloads
-(`server/services/fixtures/archaeological/*.json`) out of the repo rather than a
+(`services/api/tests/fixtures/archaeological/*.json`) out of the repo rather than a
 copy. That is what makes this a port and not a rewrite that happens to agree:
 the two suites can only both pass if the two mappers answer identically about the
 same four Open Context features and the same four tDAR resources.
@@ -20,15 +20,12 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from pinakes_contracts import contracts_dir
 from pinakes_engine.acquire.http import HttpClient, HttpResponse
 
 from pinakes.contributions import store
 from pinakes.ingest import archaeology, http
 
-FIXTURES = (
-    contracts_dir().parent / "server" / "services" / "fixtures" / "archaeological"
-)
+FIXTURES = Path(__file__).resolve().parent / "fixtures" / "archaeological"
 
 
 def recorded(name: str) -> Any:

@@ -114,9 +114,9 @@ def test_no_recorded_fixture_belongs_to_an_outstanding_route(
     `parityFixtures` off a live 501 to prove a porter is told what will grade
     their port. The last fixture-bearing outstanding route was ported in this
     band's fifth slice and the last outstanding route at all in its thirteenth.
-    Should a future `npm run parity:record` add a route this service does not
-    serve, the emptiness assertion above is what goes red first; this one says
-    which recording was involved.
+    The baseline is frozen now, so the remaining way this can go red is a route
+    that *stops* being served; the emptiness assertion above is what catches that
+    first, and this one says which recording was involved.
     """
     outstanding = {
         route.describe(): list(route.fixtures)

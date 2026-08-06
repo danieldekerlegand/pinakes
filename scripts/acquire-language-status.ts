@@ -13,9 +13,10 @@
  * What Wikidata carries for our corpus (probed against the 994 ISO-3 codes on disk):
  *  - **UNESCO language status** (P1999): ~562 of the corpus languages. Values are the
  *    UNESCO vitality scale ("1 safe" … "6 extinct"); we store the bare label
- *    ("critically endangered", "vulnerable", …) which `server/services/language-preservation
- *    .ts`'s `normalizeStatus` already maps onto its canonical VitalityLevel — so the
- *    endangered-language dashboard reflects the enriched, *sourced* status.
+ *    ("critically endangered", "vulnerable", …) which the service's
+ *    `pinakes.lexicons.preservation.normalize_status` already maps onto its canonical
+ *    VitalityLevel — so the endangered-language dashboard reflects the enriched,
+ *    *sourced* status.
  *  - **Range polygon** (geoshape, P3896): **0** of the corpus languages carry one. Wikidata
  *    (and Glottolog) do not publish inline range polygons for these languages, so the range
  *    column is emitted but stays blank for now (honest "where available"). The curated

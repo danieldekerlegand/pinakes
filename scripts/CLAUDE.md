@@ -2,6 +2,27 @@
 
 Standalone TS run with `tsx` (e.g. `npx tsx scripts/<name>.ts`). Tests run under vitest.
 
+## `lib/` — shared corpus libraries, not scripts (80-cutover US-2)
+
+`lib/data-quality-scorer.ts` and `lib/canonical-edges.ts` are pure TSV analysis over
+`data/source/lexicons/`: no CLI, no main-module guard, no filesystem writes. They lived at
+`server/services/` until the cutover deleted the Express backend, and they moved here
+rather than dying with it because their only remaining consumers are the scripts beside
+them (`coverage-report.ts`, `corpus-tier-report.ts`, `export-for-engine.ts`).
+
+**Each has a Python twin that serves the live route, and nothing binds them at compile
+time.** `pinakes.analytics.quality` answers `/api/data-quality`;
+`pinakes.lexicons.canonical_edges` backs `/api/relationships/*`. What holds them together
+is the committed artifacts they both reproduce — `docs/coverage-report.json`,
+`docs/corpus-tier-report.json`, and the `5,836 canonical edges / 1,531 skips` counts —
+asserted on this side by `lib/*.test.ts` and on that side by
+`services/api/tests/test_{data_quality,canonical_edges}.py`. **If you change a rule in one,
+change it in the other and re-run both**; a silent divergence here shows up as a report
+that disagrees with the API about the same corpus.
+
+Do not add a third module here just because it is TypeScript and reads a TSV. `lib/` is
+what a *surviving script* needs, and the bar for a new entry is that a script imports it.
+
 ## Type-checking
 
 - **`scripts/` is excluded from the project `web/tsconfig.json` `include`, so `npm run check`
@@ -9,7 +30,7 @@ Standalone TS run with `tsx` (e.g. `npx tsx scripts/<name>.ts`). Tests run under
   `npx tsc -p scripts/tsconfig.json` (0 errors expected — keep it that way).
 - `scripts/tsconfig.json` sets `baseUrl: ".."` + `paths` for `@contracts/*` and `@/*`, so
   scripts may import `@contracts/...` and cross-workspace files (e.g.
-  `../server/services/...`). At runtime, `tsx` resolves `@contracts` via the **root
+  `./lib/...`). At runtime, `tsx` resolves `@contracts` via the **root
   `tsconfig.json` shim** (tsx looks for the nearest tsconfig at or above its cwd, and the
   real project config now lives in `web/`), and vitest resolves it via its own alias config
   — a plain `@contracts` import works in all three (tsc/tsx/vitest).
@@ -225,7 +246,7 @@ culture,place,language --license-classes CC0,CC-BY --out <dir> --emit-fixture]`.
 `export-for-engine.ts` emits `build/corpus/{nodes,edges}/<type>.tsv`
 (gitignored) + `manifest.json`, and a committed manifest snapshot at
 `docs/engine-export-manifest.json`. It reuses `@contracts/lexicon-mapping` (node
-`target`/`property` dispositions) and `server/services/canonical-edges`
+`target`/`property` dispositions) and `./lib/canonical-edges`
 (`extractAllCanonicalEdges`) for edges. **csid is QID-anchored (US-005):** a row with a
 non-blank `wikidata_qid` mints `cs:<node-type>:<QID>` (a known QID *is* the identity per
 `contracts/canonical-schema.json` `idScheme`); a row without one falls back to
@@ -357,10 +378,11 @@ overwrite})` is pure; `runEnrichment`/`loadEnrichmentFile` do the fs side. Repor
   languages); an ambiguous key can't address one row, so it's skipped. Committed output
   `scripts/data/language-enrichment.tsv` is the network-free replay source.
 - **Dashboard wiring (AC3):** the enriched `endangerment_status` is a NEW column distinct from the
-  free-text `status`. `server/routes/language-preservation.ts`'s loader **prefers** it when present
-  (`(l.endangermentStatus ?? "").trim() || l.status`), so the endangered-language dashboard reflects
-  the sourced vitality. The runtime `Language` type lives in **`contracts/types.ts`** (hand-written) —
-  add the field there and read it in `tsv-storage.ts`'s `getLanguages` parse. (There is no longer a
+  free-text `status`. The service's preservation loader **prefers** it when present
+  (`(l.endangermentStatus ?? "").trim() || l.status` — `pinakes.lexicons.preservation` now), so
+  the endangered-language dashboard reflects the sourced vitality. The runtime `Language` type
+  lives in **`contracts/types.ts`** (hand-written) — add the field there and read it in
+  `pinakes.lexicons.storage.load_languages`. (There is no longer a
   competing `@shared/schema`; the Drizzle module was deleted in `10-foundation-cleanup` US-2 and its
   still-referenced record shapes moved into `contracts/types.ts`.)
 
@@ -649,14 +671,19 @@ cheap gate (header reads only, no export build): it runs `assertValidCanonicalSc
 `coverage-report.ts` compares actual lexicon row counts against the roadmap /
 data-population **targets** per domain and flags any domain still under target. It emits two
 committed artifacts — `docs/coverage-report.json` (deterministic, no timestamp; asserted
-against the live corpus by `server/services/data-quality-scorer.test.ts`) and
+against the live corpus by `scripts/lib/data-quality-scorer.test.ts`) and
 `docs/coverage-report.md` (human table). Re-run `npx tsx scripts/coverage-report.ts` after any
 data change that moves a target domain's count, or the parity test fails.
 
-- **Targets + comparison live in the service, not here.** `ROADMAP_TARGETS`, the pure
+- **Targets + comparison live in `lib/`, not here.** `ROADMAP_TARGETS`, the pure
   `computeCoverage(rowCounts)`, and `buildCoverageReport(lexiconsDir)` are exported from
-  `server/services/data-quality-scorer.ts` so `/api/data-quality` and this committed report are
-  **one source of truth**. The script is just the deterministic file-writer + Markdown renderer.
+  `scripts/lib/data-quality-scorer.ts`; the script is just the deterministic file-writer +
+  Markdown renderer. That module was `server/services/data-quality-scorer.ts` until 80-cutover
+  US-2 — pure TSV analysis with no Express in it, and these two report generators are its only
+  remaining consumers, so it moved here rather than dying with the backend. **The serving side
+  is Python** (`pinakes.analytics.quality`, behind `/api/data-quality`); the two are held
+  together by the committed artifacts they both reproduce, asserted here by
+  `lib/data-quality-scorer.test.ts` and there by `services/api/tests/test_data_quality.py`.
 - **Two target kinds:** `kind: "roadmap"` = the hard §8/§15 numbers from
   docs/prd-pinakes-deep-history-roadmap.md; `kind: "breadth"` = the credible-breadth goals
   the US-003..005 stories set for domains the roadmap describes only qualitatively
@@ -668,7 +695,7 @@ data change that moves a target domain's count, or the parity test fails.
 `corpus-tier-report.ts` is the deterministic file-writer for the trust-tier composition, the exact
 sibling of `coverage-report.ts`: it imports `buildCorpusTierReport` from the shared
 `data-quality-scorer` service (one source of truth) and emits `docs/corpus-tier-report.{json,md}`.
-The JSON is asserted against the live corpus by `server/services/data-quality-scorer.test.ts`, so
+The JSON is asserted against the live corpus by `scripts/lib/data-quality-scorer.test.ts`, so
 **re-run `npx tsx scripts/corpus-tier-report.ts` after any node-lexicon change that moves QID /
 `source_url` coverage** (e.g. a QID backfill), or that parity test fails. Tiers come from
 `@contracts/trust-tier` (`classifyTrustTier`, the TS mirror of pinakes-engine's `orchestrate/tiers.py`);
@@ -811,25 +838,17 @@ Reusable rules for any future id-collision cleanup:
   (`npm run convergence-qa:baseline`), not a regression to hide. Lowering it is a follow-up
   glottocode/ISO-enrichment task.
 
-## API parity baseline — `gen-parity-spec.ts` + `record-parity-fixtures.ts` (30-api-shell-parity US-1)
+## API parity baseline — RETIRED generators (30-api-shell-parity US-1; removed by 80-cutover US-2)
 
-The two generators behind `contracts/parity/` (contract + rules:
-[`contracts/parity/README.md`](../contracts/parity/README.md)). `npm run parity:record`
-replays the curated catalog against the real Express app on an ephemeral port and writes
-`contracts/parity/fixtures/`; `npm run parity:spec` harvests the routing table into
-`contracts/parity/openapi.json`. **Record first** — the spec folds recorded shapes into each
-operation's response schema. `npm run parity:spec:check` is the read-only sibling (exit 1 when
-stale), and `contracts/parity/parity.test.ts` enforces both in CI.
+`gen-parity-spec.ts` and `record-parity-fixtures.ts` used to live here. Both booted the
+real Express app — one harvested its routing table into `contracts/parity/openapi.json`,
+the other replayed the curated catalog against it and wrote `contracts/parity/fixtures/`.
+The cutover deleted that app, so both scripts, `contracts/parity/{harness,shape}.ts` and
+the `parity:record` / `parity:spec` / `parity:spec:check` npm scripts are all gone.
 
-- **These are the only scripts here that boot the server.** `harvestRoutesFromApp` calls the
-  real `registerRoutes(app)` and never listens; the recorder listens on `127.0.0.1:0` (never a
-  bare `listen(0)` — see `server/CLAUDE.md`). Registration is side-effect-safe today (the KCB
-  registry push is fire-and-forget and no-ops without `KCB_REGISTRY_URL`); keep it that way, or
-  the generators start needing a live backend.
-- **Attribution comes from a stack frame, not a regex** (`instrumentRouteSources` +
-  `callerFile`) — that is what attributes `app.get(MCP_ROUTE_PATH, …)` to `routes/mcp.ts`.
-  `tsx` emits source maps, so frames name the original `.ts`.
-- **Both outputs are deterministic**: no timestamps, fixtures sorted by id, spec paths sorted.
-  Re-running against an unchanged API is an empty diff — keep any new field wall-clock-free.
-- A recorded response reflects the recording environment (no Neo4j / sidecar / API keys), so
-  degraded contracts (`/api/graph/status`) are recorded as such **on purpose**.
+**The baseline they produced is frozen and still load-bearing** — it is the Python
+service's route catalog and its grading set. Contract:
+[`contracts/parity/README.md`](../contracts/parity/README.md). Nothing under `scripts/`
+reads it any more; every consumer is Python. Do not write a replacement that harvests the
+*FastAPI* routing table into it: a service that authors the contract it is graded against
+is graded against nothing.

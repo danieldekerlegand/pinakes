@@ -4,10 +4,12 @@
 behind an injectable fetch; this is the fetch for the FastAPI service, plus the
 one piece of `contracts/parity/shape.ts` a replay needs — :func:`match_shape`.
 
-Only the *matcher* is ported. Describing and merging shapes belongs to the
-recorder (`npm run parity:record`), which runs against Express and stays the sole
-author of a baseline: a Python recorder would let this service record its own
-answer as the contract it is graded against, which is no contract at all.
+Only the *matcher* is ported. Describing and merging shapes belonged to the
+recorder, which ran against Express and was the sole author of a baseline; that
+recorder retired with the Express app (80-cutover US-2) and the baseline is now
+frozen. **Do not add a describe/merge half here.** A Python recorder would let
+this service record its own answer as the contract it is graded against, which is
+no contract at all — and that reasoning did not change when the recorder left.
 
 The asymmetry is the TypeScript's, kept rule for rule — this is a port gate, not
 an equality check, so a ported handler may return *more* than the baseline and

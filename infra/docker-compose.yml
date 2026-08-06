@@ -13,13 +13,13 @@
 #
 # ⚠️ The `pinakes_engine` image does NOT build today — see the packaging note at the
 # top of infra/engine.Dockerfile. Everything the app does degrades gracefully without it
-# (docs/engine-integration.md §10b), so `npm run dev` is unaffected.
+# (docs/engine-integration.md §10b), so `npm start` is unaffected.
 #
 #   docker compose -f infra/docker-compose.yml up -d --build pinakes_engine neo4j
 #                                                       # sidecar + graph only
 #   docker compose -f infra/docker-compose.yml --profile graph up -d
 #                                                       # same, via the `graph` profile
-#   npm run dev:full                                    # sidecar + graph + app
+#   npm run dev:full                                    # sidecar + graph + the app
 #
 # neo4j sits behind the `graph` profile (it is heavy), so a bare
 # `docker compose -f infra/docker-compose.yml up` starts only the sidecar; the scripts

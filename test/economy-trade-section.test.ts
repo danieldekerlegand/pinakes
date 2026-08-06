@@ -1,5 +1,4 @@
 import { describe, it, expect } from "vitest";
-import { TsvStorage } from "../server/tsv-storage";
 import type {
   TradeGood,
   TradeRoute,
@@ -12,6 +11,12 @@ import {
   formatTradeYear,
   CATEGORY_COLORS,
 } from "../web/src/components/culture-profile/economy-trade-utils";
+
+// The corpus-integration half of this file (a `TsvStorage`-backed "Data Layer"
+// suite) retired with the Express backend in tasks/chief/80-cutover.json US-2.
+// The corpus is read by the Python service now, and services/api/tests/test_domain_routes.py (trade goods + trade routes)
+// asserts the same rows against the live TSVs. What stays here is what this file
+// is actually about: the pure client-side helpers.
 
 // --- Pure utility function tests ---
 
@@ -178,118 +183,6 @@ describe("Economy & Trade Section - Utility Functions", () => {
       expect(CATEGORY_COLORS["textile"]).toBeTruthy();
       expect(CATEGORY_COLORS["metal"]).toBeTruthy();
       expect(CATEGORY_COLORS["gemstone"]).toBeTruthy();
-    });
-  });
-});
-
-// --- Data layer integration tests ---
-
-describe("Economy & Trade Section - Data Layer", () => {
-  const storage = new TsvStorage();
-
-  describe("getTradeGoods", () => {
-    it("loads trade goods from TSV", async () => {
-      const goods = await storage.getTradeGoods();
-      expect(goods.length).toBeGreaterThanOrEqual(10);
-    });
-
-    it("returns goods with required fields", async () => {
-      const goods = await storage.getTradeGoods();
-      for (const g of goods) {
-        expect(g.id).toBeTruthy();
-        expect(g.name).toBeTruthy();
-        expect(g.category).toBeTruthy();
-        expect(g.originRegion).toBeTruthy();
-        expect(Array.isArray(g.tradeRoutes)).toBe(true);
-        expect(Array.isArray(g.associatedLanguages)).toBe(true);
-      }
-    });
-
-    it("filters by category", async () => {
-      const spices = await storage.getTradeGoods({ category: "spice" });
-      expect(spices.length).toBeGreaterThan(0);
-      for (const g of spices) {
-        expect(g.category).toBe("spice");
-      }
-    });
-  });
-
-  describe("getTradeRoutes", () => {
-    it("loads trade routes from TSV", async () => {
-      const routes = await storage.getTradeRoutes();
-      expect(routes.length).toBeGreaterThanOrEqual(5);
-    });
-
-    it("returns routes with required fields", async () => {
-      const routes = await storage.getTradeRoutes();
-      for (const r of routes) {
-        expect(r.id).toBeTruthy();
-        expect(r.name).toBeTruthy();
-        expect(r.routeType).toBeTruthy();
-        expect(Array.isArray(r.tradedGoods)).toBe(true);
-        expect(Array.isArray(r.keyCities)).toBe(true);
-        expect(Array.isArray(r.associatedLanguages)).toBe(true);
-      }
-    });
-
-    it("filters by route type", async () => {
-      const maritime = await storage.getTradeRoutes("maritime");
-      expect(maritime.length).toBeGreaterThan(0);
-      for (const r of maritime) {
-        expect(r.routeType).toBe("maritime");
-      }
-    });
-  });
-
-  describe("cross-referencing trade goods and routes", () => {
-    it("trade routes reference valid trade good IDs", async () => {
-      const goods = await storage.getTradeGoods();
-      const routes = await storage.getTradeRoutes();
-      const goodIds = new Set(goods.map((g) => g.id));
-
-      // Report every dangling reference at once, named — a bare `expect(has).toBe(true)`
-      // says only "expected false to be true" and hides how wide the breakage is.
-      const dangling: string[] = [];
-      for (const r of routes) {
-        for (const goodId of r.tradedGoods) {
-          if (!goodIds.has(goodId)) dangling.push(`${r.id} -> ${JSON.stringify(goodId)}`);
-        }
-      }
-      expect(dangling).toEqual([]);
-    });
-
-    // tr-026..tr-039 shipped with good *names* ("grain", "textiles") in the id column, so
-    // every reference dangled. Shape is the cheaper guard: a name can never look like an id,
-    // so this bites even if a future batch happens to name a good that does exist.
-    it("traded_goods holds tg-NNN ids, never good names", async () => {
-      const routes = await storage.getTradeRoutes();
-      const malformed = routes.flatMap((r) =>
-        r.tradedGoods.filter((g) => !/^tg-\d{3}$/.test(g)).map((g) => `${r.id} -> ${JSON.stringify(g)}`),
-      );
-      expect(malformed).toEqual([]);
-      expect(routes.some((r) => r.tradedGoods.length > 0)).toBe(true);
-    });
-  });
-
-  describe("language-based filtering with trade data", () => {
-    it("filters trade goods by known language IDs from trade data", async () => {
-      const allGoods = await storage.getTradeGoods();
-      // Use language IDs known to exist in trade-goods.tsv (ISO 639 codes)
-      const filtered = filterTradeGoodsByLanguages(allGoods, ["lat", "arb"]);
-      expect(filtered.length).toBeGreaterThan(0);
-    });
-
-    it("filters trade routes by known language IDs from trade data", async () => {
-      const allRoutes = await storage.getTradeRoutes();
-      // Use language IDs known to exist in trade-routes.tsv
-      const filtered = filterTradeRoutesByLanguages(allRoutes, ["arb", "cmn"]);
-      expect(filtered.length).toBeGreaterThan(0);
-    });
-
-    it("returns empty when filtering with non-matching language IDs", async () => {
-      const allGoods = await storage.getTradeGoods();
-      const filtered = filterTradeGoodsByLanguages(allGoods, ["nonexistent-lang"]);
-      expect(filtered.length).toBe(0);
     });
   });
 });

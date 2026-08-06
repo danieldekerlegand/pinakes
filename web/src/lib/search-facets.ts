@@ -5,7 +5,7 @@
  * list and building the `/api/search` URL with facet params — so they can be
  * unit-tested (client tests run in a `node` env with no DOM; component `.tsx`
  * changes stay typecheck-only). The server computes the facet *counts* and
- * applies the filtering; see `server/services/global-search.ts`.
+ * applies the filtering; see `services/api/src/pinakes/search/global_search.py`.
  */
 
 /** One facet bucket returned by the server: a value and its unfiltered count. */

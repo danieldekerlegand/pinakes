@@ -51,7 +51,7 @@ import {
 } from "@contracts/canonical-schema";
 import { nodeFiles, lexiconMappingByFile } from "@contracts/lexicon-mapping";
 import { confidenceForClass } from "@contracts/confidence-rubric";
-import { extractAllCanonicalEdges } from "../server/services/canonical-edges.ts";
+import { extractAllCanonicalEdges } from "./lib/canonical-edges.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");

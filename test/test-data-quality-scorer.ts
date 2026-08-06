@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { generateDataQualityReport } from "../server/services/data-quality-scorer";
-import type { DataQualityReport, FileQualityScore } from "../server/services/data-quality-scorer";
+import { generateDataQualityReport } from "../scripts/lib/data-quality-scorer";
+import type { DataQualityReport, FileQualityScore } from "../scripts/lib/data-quality-scorer";
 
 let passed = 0;
 let failed = 0;

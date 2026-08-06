@@ -32,7 +32,7 @@ const LANGUAGE_CSID = "cs:language:cmn";
 
 const SHOTS = "test-results/graph-ui";
 
-// ── Graph-up fixtures (mirror server/services/graph-store.ts payload shapes) ──
+// ── Graph-up fixtures (mirror services/api/src/pinakes/engine/graph.py payload shapes) ──
 
 const STATUS_UP = {
   available: true,
@@ -229,10 +229,10 @@ test.describe("graph UI degrades gracefully when the shared graph is down", () =
   });
 
   test("the explorer graph adapter shows its error state", async ({ page }) => {
-    // `panel=explore` mounts UnifiedExplorer; `ds=culturescrape-graph` selects
+    // `panel=explore` mounts UnifiedExplorer; `ds=pinakes-graph` selects
     // the shared-graph adapter, whose single GET to /api/graph/overview 503s
     // when Neo4j is down.
-    await page.goto("/?panel=explore&ds=culturescrape-graph");
+    await page.goto("/?panel=explore&ds=pinakes-graph");
     await expect(page.getByText(/Failed to load/i)).toBeVisible();
     await page.screenshot({ path: `${SHOTS}/down-explorer-adapter.png` });
   });
@@ -293,7 +293,7 @@ test.describe("graph UI renders against a (mocked) live shared graph", () => {
   test("the explorer graph adapter loads the Shared Culture Graph", async ({
     page,
   }) => {
-    await page.goto("/?panel=explore&ds=culturescrape-graph");
+    await page.goto("/?panel=explore&ds=pinakes-graph");
     // No error state, and the projected item count reflects the overview nodes.
     await expect(page.getByText(/Failed to load/i)).toHaveCount(0);
     await expect(page.getByText(/[1-9]\d* items/)).toBeVisible();

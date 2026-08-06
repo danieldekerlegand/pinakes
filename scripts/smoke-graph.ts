@@ -19,12 +19,45 @@
  *
  * Run:  npx tsx scripts/smoke-graph.ts   (optionally SMOKE_GRAPH_URL=… PORT=…)
  */
-import type { GraphHealth } from "../server/services/graph-health";
-import type { GraphNode, Neighborhood } from "../server/services/graph-store";
-import type {
-  MetricsResponse,
-  SearchResponse,
-} from "../server/services/engine-client";
+// The `/api/graph/*` response shapes, stated locally and narrowed to the fields
+// this smoke test reads. They came from `server/services/{graph-health,graph-store,
+// engine-client}.ts` until the cutover (tasks/chief/80-cutover.json US-2) deleted
+// the Express backend; the routes are served by the Python service now
+// (`services/api/src/pinakes/routers/graph.py` over an in-process engine), so
+// there is no TypeScript declaration left to import. A drift here shows up as a
+// failed check against a live stack, which is what this script is for.
+
+/** `GET /api/graph/status` — which backends the server can reach. */
+interface GraphHealth {
+  available: boolean;
+  neo4j: boolean;
+  sidecar: boolean;
+}
+
+/** A node projected out of the graph. */
+interface GraphNode {
+  csid: string;
+  labels: string[];
+  name: string;
+}
+
+/** `GET /api/graph/neighborhood/:id`. */
+interface Neighborhood {
+  nodes: GraphNode[];
+  edges: unknown[];
+  depth: number;
+}
+
+/** `GET /api/graph/search`. */
+interface SearchResponse {
+  results: { csid: string }[];
+}
+
+/** `GET /api/graph/metrics`. */
+interface MetricsResponse {
+  node_count: number;
+  edge_count: number;
+}
 
 /** Base URL of the running pinakes server (not the sidecar directly). */
 const BASE_URL = (

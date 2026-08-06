@@ -1536,8 +1536,8 @@ about what that costs the tests rather than about the routes, which are small.
 - **What the emptiness itself asserts**: `test_not_implemented` now says
   `coverage.unported == ()`, `/api/_parity/coverage` reports `portedFraction:
   1.0`, and `test_app_shell` reads that off the coverage object rather than
-  naming a path. A future `npm run parity:record` that adds a route this service
-  does not serve fails there first.
+  naming a path. With the baseline frozen (US-2) the remaining way that goes red
+  is a route that *stops* being served, which is exactly what it should catch.
 - **The pair was proved byte-identical to the live Express app over 44
   requests** — every refusal, both 500-adjacent confidence readings, the steward
   shortcut, the env-configured threshold *and* its clamp — with all 30 written
@@ -1550,3 +1550,58 @@ about what that costs the tests rather than about the routes, which are small.
   `client.py` or `paths.py`. Its graph checks assert the **contract in both
   states** — an unconfigured checkout must degrade to `available:false` + 503,
   not fail — which is what keeps it green on a machine with no Neo4j.
+
+## The cutover itself — `server/` is gone (pinakes:80 US-2)
+
+The Express backend, its 81 test files, the Node `dev`/`start` entry points, the esbuild
+leg of `build` and 21 backend-only npm dependencies are deleted. This service is the
+backend; `web/` is the client; `contracts/` and `scripts/` are what is left of the
+TypeScript. Nothing above this line changes — but several things it *refers to* moved.
+
+- **The parity baseline is FROZEN, and the guard that used to check it is now here.**
+  `contracts/parity/{harness,shape,parity.test}.ts`, `scripts/gen-parity-spec.ts` and
+  `scripts/record-parity-fixtures.ts` retired with the app they harvested and replayed
+  against; `openapi.json`, `requests.json` and `fixtures/` survive as data, and every
+  consumer is Python. `test_not_implemented.test_every_baseline_route_is_registered` —
+  "the unported set is empty" — is what replaced `parity.test.ts`'s "the spec matches the
+  live routing table", and it is the stronger claim: it fails if a route the baseline
+  promised ever *stops* being served. **There is no recorder any more.** A route added to
+  this service is specified by `GET /api/openapi.json` and covered by its own test file;
+  do not grow `contracts/parity/` to describe it, and do not write a generator that
+  harvests *this* app into it (a service that authors its own grading contract is graded
+  against nothing). See `contracts/parity/README.md`.
+- **The ingest fixtures moved into this suite**: `services/api/tests/fixtures/` (was
+  `server/services/fixtures/`), read with `Path(__file__).resolve().parent / "fixtures"`
+  rather than a `contracts_dir().parent` walk. They are recorded upstream payloads, not
+  synthesised ones — re-record or write a payload inline; never hand-edit one to make a
+  test pass. `place-resolver/` did not come across: `search/places.py` is tested against
+  inline payloads, so those three files had no reader left.
+- **`KCB_MANIFEST_EXTENSION_URI` is declared in `contracts/capability-manifest.ts` now**
+  (was `server/routes/a2a.ts`), and `test_agent_card
+  .test_the_extension_uri_is_the_one_the_participant_declaration_publishes` is the Python
+  half of the pin: it holds `kcb/agent_card.py`'s copy against
+  `contracts/participant.json`. Without it the three copies could drift silently — the
+  TypeScript test can no longer reach into this service to check.
+- **The KFT `finetune` tool lost its runner, and the degrade had to stop lying.** The
+  wrapper that shelled out to lugh was `server/services/finetune-provider.ts`, so
+  `mcp.FINETUNE_DEGRADE` used to tell a caller to "invoke it on the Express front". It now
+  names lugh's console script (`uv run --project $LUGH_ROOT pinakes-train-slm --kft-job
+  <manifest>`). The capability stays advertised — a describe surface that dropped it would
+  tell a router Pinakes is not a finetune provider at all — and
+  `contracts/capability-manifest.json`'s first `finetune` surface says so in as many words.
+- **Every `x_surfaces[].implementation` and every `participant.json` pointer now names a
+  module in this package.** Those documents are *served*, so a pointer at a deleted file
+  is a lie a consumer reads over HTTP. When you move a module that a capability names,
+  the manifest is part of the move.
+- **Two pure-TSV libraries survived the delete at `scripts/lib/`** —
+  `data-quality-scorer.ts` and `canonical-edges.ts`, because repo tooling imports them.
+  They are the graded spec for `analytics/quality.py` and `lexicons/canonical_edges.py`
+  respectively, and what binds each pair is the committed artifact both reproduce
+  (`docs/coverage-report.json`, `docs/corpus-tier-report.json`, the canonical-edge counts).
+  Change a rule on one side and the other's test goes red — which is the point.
+- **`npm run check` is clean and is a hard gate now.** The ~145-error tsc baseline this
+  repo carried for most of its life was almost entirely `server/tsv-storage.ts`.
+- **Running it**: `npm run build && npm start` (client build, then `python -m pinakes` on
+  `$PORT`, default 3050). `npm run dev` is a client-only Vite server that proxies `/api`
+  across to a service you started separately — the inversion of `server/vite.ts`, which
+  used to mount Vite *inside* the backend.

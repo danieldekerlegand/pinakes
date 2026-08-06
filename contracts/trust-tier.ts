@@ -8,10 +8,10 @@
  *
  * This module is the single TS source of truth for that policy: the graph
  * explorer/detail panels (`web/src/lib/graph/provenance.ts`) and the
- * data-quality tier report (`server/services/data-quality-scorer.ts`) both call
+ * data-quality tier report (`scripts/lib/data-quality-scorer.ts`) both call
  * {@link classifyTrustTier} so the app labels a fact the same way the Python
  * corpus build does. It is dependency-free and DOM-free so it unit-tests under
- * vitest's node environment and imports cleanly in both `web/` and `server/`.
+ * vitest's node environment and imports cleanly in `web/`, `contracts/` and `scripts/`.
  *
  * The precedence must stay byte-identical to `tiers.classify_tier` — a merged
  * row can carry several signals, so order matters (see {@link classifyTrustTier}).

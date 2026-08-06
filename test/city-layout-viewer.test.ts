@@ -1,5 +1,4 @@
 import { describe, it, expect } from "vitest";
-import { TsvStorage } from "../server/tsv-storage";
 import {
   computeSchematic,
   formatFeatureLabel,
@@ -11,6 +10,12 @@ import {
   LAYOUT_TYPE_DESCRIPTIONS,
   type CityLayoutData,
 } from "../web/src/components/visualizations/city-layout-utils";
+
+// The corpus-integration half of this file (a `TsvStorage`-backed "Data Layer"
+// suite) retired with the Express backend in tasks/chief/80-cutover.json US-2.
+// The corpus is read by the Python service now, and services/api/tests/test_ethnography_routes.py (city layouts)
+// asserts the same rows against the live TSVs. What stays here is what this file
+// is actually about: the pure client-side helpers.
 
 // --- Pure utility function tests ---
 
@@ -250,52 +255,5 @@ describe("CityLayoutViewer - computeSchematic", () => {
       keyFeatures: ["residential_quarter", "palace", "granary"],
     });
     expect(["palace", "temple_precinct"]).toContain(geo.zones[0].feature);
-  });
-});
-
-// --- Data layer integration: ensure real TSV data renders cleanly ---
-
-describe("CityLayoutViewer - against real city-layouts.tsv", () => {
-  const storage = new TsvStorage();
-
-  it("computes a valid schematic for every city layout in the TSV", async () => {
-    const layouts = await storage.getCityLayouts();
-    expect(layouts.length).toBeGreaterThan(0);
-    for (const layout of layouts) {
-      const data: CityLayoutData = {
-        id: layout.id,
-        layoutType: layout.layoutType,
-        keyFeatures: layout.keyFeatures,
-        fortificationType: layout.fortificationType,
-        description: layout.description,
-        reconstructionNotes: layout.reconstructionNotes,
-      };
-      const geo = computeSchematic(data);
-      expect(geo.viewBoxWidth).toBeGreaterThan(0);
-      expect(geo.viewBoxHeight).toBeGreaterThan(0);
-      // Every zone inside the viewbox
-      for (const zone of geo.zones) {
-        expect(zone.x).toBeGreaterThanOrEqual(0);
-        expect(zone.y).toBeGreaterThanOrEqual(0);
-        expect(zone.x + zone.width).toBeLessThanOrEqual(geo.viewBoxWidth);
-        expect(zone.y + zone.height).toBeLessThanOrEqual(geo.viewBoxHeight);
-      }
-    }
-  });
-
-  it("produces gate markers only when the walled city also declares gates", async () => {
-    const layouts = await storage.getCityLayouts();
-    for (const layout of layouts) {
-      const data: CityLayoutData = {
-        id: layout.id,
-        layoutType: layout.layoutType,
-        keyFeatures: layout.keyFeatures,
-        fortificationType: layout.fortificationType,
-      };
-      const geo = computeSchematic(data);
-      if (!layout.keyFeatures.includes("gates")) {
-        expect(geo.gates).toBeUndefined();
-      }
-    }
   });
 });

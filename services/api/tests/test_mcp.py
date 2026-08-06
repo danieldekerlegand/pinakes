@@ -300,4 +300,6 @@ def test_invoking_the_finetune_pair_degrades_with_somewhere_to_go(
     payload = decode(result)
     assert payload["error"].endswith("is unavailable")
     assert "lugh" in payload["detail"]
-    assert "/api/_parity/coverage" in payload["detail"]
+    # The degrade must name a runner that exists. It used to point at the Express
+    # front; 80-cutover US-2 deleted that, so it names lugh's console script.
+    assert "pinakes-train-slm" in payload["detail"]

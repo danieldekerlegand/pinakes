@@ -53,7 +53,8 @@ GLOTTOLOG_VORONOI_DIR_ENV = "PINAKES_GLOTTOLOG_VORONOI_DIR"
 PARITY_SPEC_CONTRACTS_RELPATH = Path("parity") / "openapi.json"
 
 #: Relative to the repo root. Also the marker that *identifies* the repo root —
-#: it is generated (`npm run parity:spec`) and committed, so it is always there.
+#: it is committed, and frozen since the cutover deleted its generator, so it is
+#: always there (see `contracts/parity/README.md`).
 PARITY_SPEC_RELPATH = Path("contracts") / PARITY_SPEC_CONTRACTS_RELPATH
 
 #: Relative to the repo root. Must track `build.outDir` in `web/vite.config.ts`.

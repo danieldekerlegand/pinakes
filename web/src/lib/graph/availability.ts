@@ -8,7 +8,7 @@
  * any consumer (hook, gate component, future graph views).
  */
 
-/** Shape of the `/api/graph/status` response (see server/routes/graph.ts). */
+/** Shape of the `/api/graph/status` response (see services/api/src/pinakes/routers/graph.py). */
 export interface GraphStatus {
   /** True when EITHER backend is reachable. */
   available: boolean;

@@ -4,7 +4,7 @@ import { clampIndex, nextIndex, prevIndex, normalizeLicense } from "./image-gall
  * Pure helpers for the audio side of the culture media gallery (US-003).
  *
  * `mediaType:'audio'` assets (music traditions, instrument clips) are supported
- * by `server/services/media-asset-service.ts` but the image gallery can only
+ * by `services/api/src/pinakes/media/assets.py` but the image gallery can only
  * render `<img>` thumbnails, so audio must be split out and played with a
  * dedicated player. All list/partition/provenance/sequence logic lives here so
  * it is unit-testable in the node test environment; the React player

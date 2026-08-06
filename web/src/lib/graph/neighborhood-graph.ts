@@ -3,7 +3,7 @@
  * (`GET /api/graph/neighborhood/:id`) into the shape the generic
  * {@link NetworkGraph} renderer consumes (US-007).
  *
- * The shapes mirror `server/services/graph-store.ts` (`GraphNode`/`GraphEdge`/
+ * The shapes mirror `services/api/src/pinakes/engine/graph.py` (`GraphNode`/`GraphEdge`/
  * `Neighborhood`) so the client stays a thin projection: nodes are coloured and
  * typed by their first `:LABEL`, edges are labelled by their `:TYPE`.
  *
@@ -17,7 +17,7 @@ import type {
   NetworkGraphEdge,
 } from "@/components/visualizations/shared/NetworkGraph";
 
-// ── Server payload shapes (mirror server/services/graph-store.ts) ────────────
+// ── Server payload shapes (mirror services/api/src/pinakes/engine/graph.py) ────────────
 
 /** A node as returned by the graph API. */
 export interface GraphNodePayload {

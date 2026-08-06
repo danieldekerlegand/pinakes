@@ -8,7 +8,7 @@
  * `web/src/components/IpaAudioButton.tsx`.
  *
  * Recorded-clip playback (`mediaType:'audio'` assets from
- * `server/services/media-asset-service.ts`) can be layered on later by
+ * `services/api/src/pinakes/media/assets.py`) can be layered on later by
  * preferring a clip URL over synthesis; for now we synthesise, which needs no
  * pre-recorded assets and degrades gracefully where TTS is unavailable.
  */

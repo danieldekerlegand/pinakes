@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
 
-import { KCB_MANIFEST_EXTENSION_URI } from "../server/routes/a2a";
-import { CAPABILITY_MANIFEST, type CapabilityManifest } from "./capability-manifest";
+import {
+  CAPABILITY_MANIFEST,
+  KCB_MANIFEST_EXTENSION_URI,
+  type CapabilityManifest,
+} from "./capability-manifest";
 import { EGRESS_POLICY, EGRESS_POLICY_PATH } from "./egress-policy";
 import { hasKoineSchema, validateAgainstKoineSchema } from "./koine-schema";
 import {
@@ -121,7 +124,7 @@ describe("participant self-description", () => {
     expect(() => assertValidParticipant(declaration)).toThrow(/a pointer to nowhere/);
   });
 
-  it("names the KCB manifest extension the served card actually carries", () => {
+  it("names the KCB manifest extension the served card carries", () => {
     expect(PARTICIPANT.capability.manifest_extension_uri).toBe(KCB_MANIFEST_EXTENSION_URI);
     const declaration = clone();
     mutable(declaration).capability.manifest_extension_uri = "https://example.test/kcb/0.3";

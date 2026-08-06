@@ -7,13 +7,15 @@
  * The machine-readable source of truth is {@link ./capability-manifest.json} — one
  * document, versioned on `x_pinakes.manifestVersion`, shaped exactly like KCB §2 so
  * it can be served verbatim. This module imports it, pins its shape, and exposes the
- * accessors the serving layer (`server/routes/capability-bus.ts`) and its tests use.
+ * accessors the serving layer and its tests use. That layer is Python now
+ * (`services/api/src/pinakes/routers/capability_bus.py`); this module is what the
+ * client and the contract tests read.
  *
  * **This is a surface wrapper, never an implementation.** Every capability's
  * `x_surfaces` point at already-built, already-merged code — the Wikidata
  * OpenRefine reconciler (`pinakes_engine/schema/reconcile.py`), the csid resolver
- * (`server/services/graph-resolver.ts`), the graph query routes, the canonical-TSV
- * and entity-grounding exporters. Nothing here re-implements a reconciler; the
+ * (`services/api/src/pinakes/search/graph_resolver.py`), the graph query routes,
+ * the canonical-TSV and entity-grounding exporters. Nothing here re-implements a reconciler; the
  * manifest only makes those surfaces *discoverable* in KCB terms.
  *
  * Because KCB §3 is route-by-lookup rather than proxy, the registry is a cache over
@@ -195,7 +197,7 @@ export interface CapabilityEndpoints {
  * The KCB §5 manifest signature block. `alg` is fixed (`ed25519`); `key_id` is null
  * until a key is provisioned. `signature` is a detached base64 Ed25519 signature over
  * the canonical manifest with this `signature` field excluded — server-only code in
- * `server/services/manifest-signing.ts` attaches it, keeping `contracts/` node-builtin-free.
+ * `services/api/src/pinakes/kcb/signing.py` attaches it, keeping `contracts/` node-builtin-free.
  */
 export interface ManifestSigning {
   readonly key_id: string | null;
@@ -245,6 +247,21 @@ export const CAPABILITY_MANIFEST = capabilityManifestJson as CapabilityManifest;
 
 /** The KINP agent id this manifest publishes under. */
 export const RESOLVER_IDENTITY = "pinakes:agent:resolver";
+
+/**
+ * The stable extension URI the KCB manifest rides under on the A2A AgentCard
+ * (`koine/specs/capability-bus.md` §2). A crawler recovers the KCB §2 payload
+ * from the `capabilities.extensions[]` entry whose `uri` is this.
+ *
+ * Declared here, in the contract, rather than in the code that serves the card:
+ * the serving side is now Python (`pinakes.kcb.agent_card`), and this constant
+ * is what `participant.test.ts` holds `participant.json`'s
+ * `capability.manifest_extension_uri` against. The Python copy is pinned to the
+ * same declaration by `services/api/tests/test_agent_card.py`, so the three can
+ * never drift apart silently. Was `server/routes/a2a.ts` until the cutover
+ * (tasks/chief/80-cutover.json US-2).
+ */
+export const KCB_MANIFEST_EXTENSION_URI = "https://koine.dev/kcb/manifest/0.3";
 
 /** Look up one capability by name; `undefined` when absent. */
 export function capability(name: string): Capability | undefined {

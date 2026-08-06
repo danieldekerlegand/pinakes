@@ -12,7 +12,7 @@ import type { DrawingMode } from './hooks/useDrawingTool';
 
 // Drawing targets, split by geometry kind. Polygon shapes describe areas; line
 // shapes describe paths. Each maps 1:1 onto a geometry-bearing TSV and onto the
-// server's `DrawnGeometryTarget` (see server/services/drawn-geometry.ts).
+// server's `DrawnGeometryTarget` (see services/api/src/pinakes/authoring/drawn_geometry.py).
 const POLYGON_TARGETS = [
   { value: 'boundary', label: 'Civilization Boundary' },
   { value: 'language-range', label: 'Language Range' },

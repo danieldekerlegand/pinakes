@@ -1,13 +1,22 @@
 # pinakes
 
-A TypeScript/React/Vite + Express application for exploring language, culture, and deep
-history through interactive visualizations. Storage is **TSV-first** — `data/source/lexicons/*.tsv` is
-the source of truth (loaded by `server/tsv-storage.ts`); there is no Postgres/Drizzle in the
-live path.
+**One Python service + one React client.** A FastAPI backend
+([`services/api/`](./services/api/)) serves the whole `/api` surface *and* the built
+React/Vite client ([`web/`](./web/)) from a single process, for exploring language,
+culture, and deep history through interactive visualizations. Storage is **TSV-first** —
+`data/source/lexicons/*.tsv` is the source of truth (loaded by
+`pinakes.lexicons.storage`); there is no Postgres/Drizzle in the live path.
+
+The TypeScript/Express backend this replaced was deleted in the final cutover
+(`tasks/chief/80-cutover.json`; docs/UNIFIED-PROJECT-PLAN.md §7 Phase 4) after all 306
+of its routes were ported — `contracts/parity/` is the frozen baseline the service is
+still graded against. The TypeScript that remains is the client, the cross-cutting
+contracts ([`contracts/`](./contracts/)) and the repo tooling ([`scripts/`](./scripts/)).
 
 pinakes also consumes a **shared pinakes-engine graph** (Neo4j + Datalog) for
-cross-domain correlation, while keeping CPU-domain compute (linguistic distance, etymology)
-in TypeScript. The Python data/correlation engine is **first-party pinakes code** at
+cross-domain correlation; the CPU-domain compute (linguistic distance, etymology) lives
+in the service beside it. The engine is **imported in-process** — there is no sidecar HTTP
+hop on the live path — and is **first-party pinakes code** at
 [`engine/`](./engine/) — formerly vendored under `packages/culture-scrape/`, relocated into
 pinakes proper and renamed to the `pinakes_engine` package. Canonical **format
 rendering** — Neo4j/Prolog/Soufflé/ProbLog/TSV — is delegated to the embedded agora
@@ -18,18 +27,29 @@ remains in Python.
 ## Quickstart
 
 ```bash
-npm install
+npm install                   # the client + the repo tooling
+uv sync --all-packages        # the Python service + the engine (one root .venv)
 cp .env.example .env          # fill in API keys / graph config as needed
 
-npm run dev                   # app only (graph features degrade off gracefully)
-npm run dev:full              # app + pinakes-engine sidecar + Neo4j (needs Docker; the
-                              # sidecar image is currently unbuildable — see infra/engine.Dockerfile)
+npm run build && npm start    # build the client, then serve everything from one
+                              # process (`python -m pinakes`, $PORT default 3050)
+npm run dev                   # client-only Vite dev server with HMR; proxies /api to
+                              # a service started separately with `npm start`
+npm run dev:full              # the above + pinakes-engine sidecar + Neo4j (needs Docker;
+                              # the sidecar image is currently unbuildable — see
+                              # infra/engine.Dockerfile)
 
-npm run check                 # typecheck (tsc -p web/tsconfig.json)
+npm run check                 # typecheck the client + contracts (tsc -p web/tsconfig.json)
+npm run check:scripts         # typecheck scripts/ (its own tsconfig)
 npm test                      # the full vitest suite
 npm test -- <path>            # tests, scoped to what you changed
-npm run build && npm start    # production build + serve
+
+uv run --all-packages pytest engine/tests        # the engine suite
+uv run --all-packages pytest services/api/tests  # the service suite
 ```
+
+`.chief/verify.sh` runs exactly the checks a given diff needs and is the merge gate;
+`CHIEF_VERIFY_DRY_RUN=1 .chief/verify.sh` prints the plan without running it.
 
 The app runs fully **without** the graph stack — graph-dependent UI simply disables with a
 tooltip. See the runbook below to enable it.
@@ -54,7 +74,9 @@ tooltip. See the runbook below to enable it.
   MCP/A2A fronts, and the **specialized, local-only** fine-tuning provider. Its trainer is
   **no longer in this repo**: the `ml/` workspace was extracted into the private **`lugh`**
   repo as `lugh:agent:finetune` ([`docs/LUGH-EXTRACTION-PLAN.md`](./docs/LUGH-EXTRACTION-PLAN.md)),
-  and the app-side wrapper dispatches to a lugh checkout resolved from `LUGH_ROOT`.
+  and since the cutover deleted the app-side dispatch wrapper, a KFT job is run against
+  lugh directly (`uv run --project $LUGH_ROOT pinakes-train-slm --kft-job <manifest>`);
+  Pinakes still *advertises* and describes the capability on its MCP/A2A fronts.
   Fine-tuning is deliberately multi-provider (KFT §9/FT-K), and **two sibling
   legs are NOT built in this repo**: the *general*, cloud-capable trainer
   (`agora:90-finetune-trainer`) and the KCB client that calls both
@@ -63,4 +85,5 @@ tooltip. See the runbook below to enable it.
 - **Data/correlation engine** — [`engine/README.md`](./engine/README.md)
   (Python ≥3.11; own `mypy`/`pytest`/`ruff` toolchain).
 
-Nearby `CLAUDE.md` files (`scripts/`, `contracts/`) hold directory-specific conventions.
+Nearby `CLAUDE.md` files (`services/api/`, `scripts/`, `contracts/`) hold
+directory-specific conventions.

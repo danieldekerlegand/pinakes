@@ -103,7 +103,7 @@ describe("capability manifest", () => {
     expect(primarySurface("resolve")).toMatchObject({
       method: "GET",
       path: "/api/graph/resolve",
-      implementation: "server/services/graph-resolver.ts",
+      implementation: "services/api/src/pinakes/search/graph_resolver.py",
     });
     // The reconciler is the merged Python one — the manifest points at it, never replaces it.
     expect(primarySurface("reconcile")?.implementation).toBe(
@@ -324,7 +324,10 @@ describe("the specialized KFT finetune capability", () => {
   it("wraps the already-built lugh trainer rather than declaring new training code", () => {
     const implementations = finetuneCapability()!.x_surfaces.map((s) => s.implementation);
     expect(implementations).toContain("lugh:pinakes-train-slm");
-    expect(implementations).toContain("server/services/finetune-provider.ts");
+    // The MCP front advertises and describes the pair; the dispatch wrapper
+    // (`server/services/finetune-provider.ts`) retired with the Express backend in
+    // 80-cutover US-2, so this surface is the describe half and lugh is the runner.
+    expect(implementations).toContain("services/api/src/pinakes/kcb/mcp.py");
   });
 
   it("rejects a finetune capability with no specialization marker", () => {
