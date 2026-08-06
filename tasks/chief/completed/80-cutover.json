@@ -12,9 +12,15 @@
     "65-port-catalog-bus",
     "70-unify-scrapers"
   ],
-  "touches": ["cutover", "python-api", "repo-layout"],
+  "touches": [
+    "cutover",
+    "python-api",
+    "repo-layout"
+  ],
   "iters": 8,
-  "warmup": ["bun install"],
+  "warmup": [
+    "bun install"
+  ],
   "userStories": [
     {
       "id": "US-1",
@@ -41,5 +47,6 @@
       "passes": true,
       "notes": ""
     }
-  ]
+  ],
+  "mergedToMain": "e5062e4e"
 }
