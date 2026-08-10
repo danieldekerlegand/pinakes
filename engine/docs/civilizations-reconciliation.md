@@ -1,7 +1,7 @@
 # Civilizations reconciliation report (data-population pilot, US-002)
 
 Point-in-time snapshot of the **acquire → normalize → reconcile** step of the
-civilizations pilot (`docs/prd-pinakes-deep-history-roadmap.md` §15). Reproduce
+civilizations pilot (`docs/roadmap/prd-pinakes-deep-history-roadmap.md` §15). Reproduce
 with:
 
 ```bash

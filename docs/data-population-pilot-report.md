@@ -6,7 +6,7 @@ proven end-to-end on one domain (civilizations), landing real, attributed data a
 into the running app.
 
 - **Pilot:** `data-population-pilot` (branch `ralph/data-population-pilot`), US-001…US-006.
-- **Roadmap:** de-risks [§15 "Data population at scale"](./prd-pinakes-deep-history-roadmap.md#15-data-population-at-scale--the-priority),
+- **Roadmap:** de-risks [§15 "Data population at scale"](./roadmap/prd-pinakes-deep-history-roadmap.md#15-data-population-at-scale--the-priority),
   the highest-leverage gap. Civilizations was §15's first pilot row (89 actual → 150+ target).
 - **Date:** 2026-07-08. Accurate against the committed state of US-001…US-005.
 
@@ -146,8 +146,8 @@ QA report so §15's progress table can be tracked automatically as domains fill 
 
 ## References
 
-- Roadmap: [§15 Data population at scale](./prd-pinakes-deep-history-roadmap.md#15-data-population-at-scale--the-priority),
-  [§16 Production-verification pass](./prd-pinakes-deep-history-roadmap.md), Guiding Principles #5 & #8.
+- Roadmap: [§15 Data population at scale](./roadmap/prd-pinakes-deep-history-roadmap.md#15-data-population-at-scale--the-priority),
+  [§16 Production-verification pass](./roadmap/prd-pinakes-deep-history-roadmap.md), Guiding Principles #5 & #8.
 - Integration design: [`engine-integration.md`](./engine-integration.md),
   [`engine/docs/convergence-build.md`](../engine/docs/convergence-build.md).
 - Pilot artifacts: [`civilizations-writeback.md`](./civilizations-writeback.md),

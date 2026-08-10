@@ -1,6 +1,6 @@
 # Security & Hardening
 
-Tracks the `ralph/security-hardening` work (US-001…US-008), cross-linked from the roadmap's [Phase-15 status → Hardening](./prd-pinakes-deep-history-roadmap.md#phase-15-status-so-far) bullet.
+Tracks the `ralph/security-hardening` work (US-001…US-008), cross-linked from the roadmap's [Phase-15 status → Hardening](./roadmap/prd-pinakes-deep-history-roadmap.md#phase-15-status-so-far) bullet.
 
 ## API keys are server-side only
 
@@ -207,7 +207,7 @@ literally.
 ## Story → posture map
 
 Where each hardening story lands against the roadmap's
-[Phase-15 → Hardening](./prd-pinakes-deep-history-roadmap.md#phase-15-status-so-far) bullet:
+[Phase-15 → Hardening](./roadmap/prd-pinakes-deep-history-roadmap.md#phase-15-status-so-far) bullet:
 
 | Story | Hardening outcome | Addresses |
 | --- | --- | --- |

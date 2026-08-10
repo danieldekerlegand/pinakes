@@ -685,7 +685,7 @@ data change that moves a target domain's count, or the parity test fails.
   together by the committed artifacts they both reproduce, asserted here by
   `lib/data-quality-scorer.test.ts` and there by `services/api/tests/test_data_quality.py`.
 - **Two target kinds:** `kind: "roadmap"` = the hard §8/§15 numbers from
-  docs/prd-pinakes-deep-history-roadmap.md; `kind: "breadth"` = the credible-breadth goals
+  docs/roadmap/prd-pinakes-deep-history-roadmap.md; `kind: "breadth"` = the credible-breadth goals
   the US-003..005 stories set for domains the roadmap describes only qualitatively
   ("foundational corpus"). Each carries a `source` string. When you add a domain target, add it
   to `ROADMAP_TARGETS` and regenerate the committed report.

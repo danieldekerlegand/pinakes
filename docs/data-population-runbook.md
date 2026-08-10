@@ -127,4 +127,4 @@ sidecar + Neo4j on the **same** corpus — pilot §6.3).
 - [Data-population pilot report](./data-population-pilot-report.md) — the end-to-end proof + gotchas.
 - [Canonical schema §7–§10](./canonical-schema.md) — export, reconciliation, write-back, QA gate.
 - [pinakes-engine integration design](./engine-integration.md).
-- Roadmap [§15 Data population at scale](./prd-pinakes-deep-history-roadmap.md).
+- Roadmap [§15 Data population at scale](./roadmap/prd-pinakes-deep-history-roadmap.md).
