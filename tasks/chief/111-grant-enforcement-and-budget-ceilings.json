@@ -4,9 +4,7 @@
   "baseBranch": "main",
   "description": "Phase C fabric completion (ROADMAP.md Phase C; docs/capability-bus.md §\"Not yet built\", KCB §5 / KFT §7). Today `auth.grants_required` fixes the grant SHAPE only, and `cost.meter`/`est_units` publish the finetune figure a caller gates on but no ceiling is checked. Enforce grants pinakes-side: verify/rotate presented grants and gate `finetune` admission on a `budget_units` ceiling. CROSS-REPO: issuance/rotation/spend-ceiling policy lives in the orchestrator's workforce governance (the grant ISSUER), so this depends on agora providing that issuer; pinakes implements the ENFORCEMENT seam against koine's KCB contract. Scope: the capability-bus auth/admission path (services/api capability_bus.py, the api-auth successor) + the manifest + tests. Serializes with other Phase-C rows on `capability-bus`.",
   "parked": false,
-  "dependsOn": [
-    "agora:grant-issuer"
-  ],
+  "dependsOn": [],
   "touches": [
     "python-api",
     "capability-bus"
