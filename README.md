@@ -1,5 +1,21 @@
 # pinakes
 
+**The definitive open, interactive atlas of human language and culture across geography
+and time.** Human cultural knowledge — languages, cuisines, religions, migrations,
+archaeology, genetics — is scattered, siloed by domain, and rarely temporally or
+geographically situated in one correlatable model. pinakes builds the open reference
+where it is: a **Wikidata-anchored canonical graph** in which every entity is situated in
+time and space and "Yamnaya → Persians" is a traversable path — explored through an
+interactive atlas of 1,100+ languages and 15+ cultural domains (cuisine, music, religion,
+writing systems, deities, myth, trade, genetics, …), each cross-linked through etymology
+chains, the cultural-lineage DAG, and cross-domain correlation.
+
+The same graph makes pinakes the ecosystem's **canonical knowledge authority**: the
+citable, provenance-carrying corpus that fabric peers ground against and that **lugh**
+trains on (shared `cs:` id-space), published as a koine **KCB provider** with MCP/A2A
+fronts and KINP identity. Vision, current state, and the full milestones program are in
+[`ROADMAP.md`](./ROADMAP.md).
+
 **One Python service + one React client.** A FastAPI backend
 ([`services/api/`](./services/api/)) serves the whole `/api` surface *and* the built
 React/Vite client ([`web/`](./web/)) from a single process, for exploring language,
@@ -36,8 +52,8 @@ npm run build && npm start    # build the client, then serve everything from one
 npm run dev                   # client-only Vite dev server with HMR; proxies /api to
                               # a service started separately with `npm start`
 npm run dev:full              # the above + pinakes-engine sidecar + Neo4j (needs Docker;
-                              # the sidecar image is currently unbuildable — see
-                              # infra/engine.Dockerfile)
+                              # today this brings up Neo4j only — see the sidecar
+                              # status note below)
 
 npm run check                 # typecheck the client + contracts (tsc -p web/tsconfig.json)
 npm run check:scripts         # typecheck scripts/ (its own tsconfig)
@@ -54,8 +70,21 @@ uv run --all-packages pytest services/api/tests  # the service suite
 The app runs fully **without** the graph stack — graph-dependent UI simply disables with a
 tooltip. See the runbook below to enable it.
 
+**Sidecar status.** The pinakes-engine sidecar — the FastAPI JSON API behind the
+`/api/graph/*` search / metrics / datalog / cypher routes — is **delivered** and runs
+fine outside Docker (`cd engine && uv sync --all-extras && uv run pinakes_engine serve
+<corpus> --port 8800`). What does not build is its **Docker image**: the embedded agora
+translation engine is vendored as a macOS/arm64-only wheel, so the linux image is blocked
+until `agora:60` ships a portable artifact (full reasoning at the top of
+[`infra/engine.Dockerfile`](./infra/engine.Dockerfile)). Until then `npm run dev:full` /
+`sidecar:up` bring up **Neo4j only** and the sidecar-backed routes degrade gracefully per
+the runbook's §10b degradation contract.
+
 ## Documentation
 
+- **Roadmap** — [`ROADMAP.md`](./ROADMAP.md): vision & scope, current state (corpus
+  coverage, fabric caveats), and the single consolidated milestones list — shipped,
+  in-progress, and the mined Phases A–C.
 - **Graph integration & runbook** — [`docs/engine-integration.md`](./docs/engine-integration.md):
   architecture, the `/api/graph/*` route catalog and degradation contract (§10b), and the
   app-side **run / deploy / extend** runbook incl. env vars, `dev:full`, docker-compose, and
