@@ -1,0 +1,58 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/118-cldf-substrate-expansion",
+  "baseBranch": "main",
+  "description": "D4(a) — widen the CLDF substrate so the published linguistics datasets carry the load hand-curation has been carrying (docs/DECISION-D4-CLDF-AND-WIKIBASE.md §2). WALS (192 features x 2,600+ languages), PHOIBLE and Lexibank/ABVD already ship as category-only ingests (docs/ATTRIBUTION.md 'Graph-side linguistic breadth sources'); Glottolog is being built by 107. The two remaining pieces of the CLLD-published substrate are GRAMBANK (195 binary/ordinal grammatical features x 2,400+ languages, CC-BY-4.0 — the largest typological release not yet ingested, and the natural partner to WALS on the same glottocode key) and CONCEPTICON (the concept-set catalogue data/source/lexicons/words-base.tsv is already informally derived from, per docs/ATTRIBUTION.md 'Core Language Data'). Both ride the 106 reusable CLDF dump adapter as category specs, not new adapter code. LICENCE DUE DILIGENCE IS PART OF THE WORK, not a footnote: Concepticon's repository carries no SPDX declaration, and PHOIBLE's repository is GPL-3.0 while its DATA is CC-BY-SA — a repo/data split that must be verified before either is redistributed. Every record lands through 117's admission gate with a verified SPDX id; anything unverifiable is fail-closed `unknown` and is NOT ingested. Scope: the engine acquire layer (category specs + reconciliation reports + fixtures) and the attribution docs. No hand-curation.",
+  "parked": false,
+  "dependsOn": [
+    "106-reusable-cldf-dump-adapter",
+    "117-license-tiering-at-ingest"
+  ],
+  "touches": [
+    "engine",
+    "acquire"
+  ],
+  "iters": 8,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Verify the licence of every CLDF source before writing a spec",
+      "description": "Establish, from each dataset's own CLDF metadata rather than from a README or a secondary source, the SPDX id that will be stamped on its records — and record which sources are safe to redistribute under which terms. This precedes ingest because 117's admission gate refuses an unregistered id.",
+      "acceptanceCriteria": [
+        "For Grambank, Concepticon, and (re-verified) PHOIBLE, the SPDX id is read from the release's own CLDF `dc:license` / metadata.json and recorded in docs/ATTRIBUTION.md with the release version and the URL it was read from; a source whose licence cannot be established from its own release metadata is recorded as unverified and NOT ingested by this tasklist.",
+        "The PHOIBLE repository-vs-data split is explicitly resolved and written down: which artifact is GPL-3.0 (code) and which is CC-BY-SA (data), and the statement that pinakes redistributes only the data — with the evidence cited, not asserted.",
+        "Every newly-verified id is present in `_SPDX_TO_CLASS` in engine/src/pinakes_engine/schema/license_class.py (or a registration is added), so no ingested record can classify `unknown` at admission; a test pins each new source's category spec licence against the registry."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Grambank as a category spec on the reusable CLDF adapter",
+      "description": "Ingest Grambank's grammatical-feature values as attribute-fact nodes keyed by glottocode, in the same shape WALS/PHOIBLE already use (engine/src/pinakes_engine/schema/typology_reconcile.py), driven entirely by a category spec with no new adapter module.",
+      "acceptanceCriteria": [
+        "A `categories/grambank.yml` spec ingests a Grambank CLDF StructureDataset through the 106 adapter with NO new Python adapter code, emitting one attribute-fact node per (language, feature) value with the verified SPDX licence on every record.",
+        "The two typology-ingest gotchas documented in engine/src/pinakes_engine/schema/CLAUDE.md are honoured and proven by fixture-count assertion: ISO 639-3 is mapped to `lang` so the fuzzy merge blocks per language, and node `name` is per-language-distinct so `merge_rows` cannot collapse different features of one language.",
+        "Per-language coverage is reconciled through `typology_reconcile.build_coverage`'s glottocode -> ISO cascade and committed as a report alongside docs/wals-phoible-reconciliation.md, recording facts / languages / licence class — the coverage the ingest actually achieved, not a fixture-sized number.",
+        "`uv run --all-packages pytest -q engine/tests` and the engine ruff/mypy gate are green."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-3",
+      "title": "Concepticon as the concept-set spine for words-base",
+      "description": "Ingest Concepticon's concept sets as a category spec so the base-concept vocabulary is a maintained upstream release rather than an informal transcription, and reconcile it against the existing words-base rows without overwriting curated values.",
+      "acceptanceCriteria": [
+        "A `categories/concepticon.yml` spec ingests Concepticon concept sets through the 106 adapter (again no new adapter code), each record carrying the US-1-verified SPDX id, and gated by US-1 — if Concepticon's licence could not be established, this story lands the spec plus a skipped/xfail-marked ingest test naming the blocker rather than ingesting unlicensed data.",
+        "The ingested concept sets are reconciled against data/source/lexicons/words-base.tsv by concept id/gloss, reporting matched / ambiguous / new; ambiguous is never auto-merged and curated cells are never overwritten (Guiding Principle #8), with the summary committed as a reconciliation doc.",
+        "`.chief/verify.sh` passes and every new category/job YAML parses."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

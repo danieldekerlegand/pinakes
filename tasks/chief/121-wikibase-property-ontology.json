@@ -1,0 +1,57 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/121-wikibase-property-ontology",
+  "baseBranch": "main",
+  "description": "D4(b) step 2 of 5 — design the property ontology, the piece that determines whether the migration is worth doing (docs/DECISION-D4-CLDF-AND-WIKIBASE.md §5). Wikibase's value is that statements + qualifiers + references + ranks are primitives; realising it means deciding, for every column of contracts/canonical-schema.json, whether it becomes an item, a property, a qualifier, a reference, or a rank — and getting that wrong buries the benefit under a column-for-column transliteration of the TSV. Three constraints are hard. (1) THE `cs:` ID-SPACE IS SHARED DATA (with lugh and the client, per CLAUDE.md) and is QID-anchored: a known `wikidata_qid` IS the identity. So the mapping to Wikibase entity ids must preserve csid stability and the Wikidata anchoring, not replace it — a csid must remain resolvable across the migration or every downstream consumer breaks. (2) THE PROVENANCE COLUMNS BECOME REFERENCES: `source`/`source_url`/`retrieved_at`/`confidence` ride on every row today as columns; in Wikibase they are a reference block on the statement, which is strictly better but means the confidence-rubric priors (@contracts/confidence-rubric) need a defined home. (3) THE LICENCE TIER FROM 117 MUST SURVIVE as a first-class, queryable property of the statement, not a note — a share-alike or non-commercial statement has to be selectable for exclusion from a redistributable partition, which is exactly what ranks and reference-level qualifiers are for. Prior art to follow rather than invent: the peer-reviewed CIDOC-CRM-over-Wikibase modelling method and the FactGrid/Enslaved.org property schemes. Deliverable is a designed, reviewed, machine-readable mapping plus a round-trip proof — no bulk import (that is 122). Scope: contracts + the mapping document + a round-trip test harness.",
+  "parked": false,
+  "dependsOn": [
+    "120-wikibase-assessment-and-ops-gate"
+  ],
+  "touches": [
+    "store",
+    "contracts"
+  ],
+  "iters": 10,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "A machine-readable canonical-schema to Wikibase mapping",
+      "description": "Produce the mapping as a contract artifact, not prose: every canonical node type, edge type, and column gets an explicit destination in the Wikibase model, with the reasoning for the ones that are not obvious.",
+      "acceptanceCriteria": [
+        "A machine-readable mapping under contracts/ covers EVERY node type, edge type and column declared in contracts/canonical-schema.json, assigning each to an item class, a property, a qualifier, a reference field, or a rank — with a validator that fails if a schema element has no destination, so the mapping cannot silently fall behind a schema change (the same drift-gate discipline as `bun run check:contracts`).",
+        "Temporal and geographic scoping are modelled as statement QUALIFIERS (the `time_origin`/`time_end`, `latitude`/`longitude` and range-geometry columns), so 'true at time T, in place P' is expressible without a per-consumer convention — demonstrated on a worked example from the real corpus.",
+        "The provenance quartet (`source`, `source_url`, `retrieved_at`, `confidence`) is modelled as a statement REFERENCE, with a stated home for the @contracts/confidence-rubric priors, and the design says what happens to a statement that has no reference (it is not silently promoted to unsourced-but-equal).",
+        "Competing claims are modelled with RANKS (preferred / normal / deprecated), with the rule for how a rank is assigned from the existing trust tier (contracts/trust-tier.ts: curated / auto-admitted / quarantine / inferred) written down and pinned by a test."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Preserve csid identity and the licence tier across the model",
+      "description": "Guarantee the two things that cannot break: the shared cs: id-space stays resolvable, and 117's ingest-time licence tier stays queryable at statement granularity.",
+      "acceptanceCriteria": [
+        "Every canonical csid maps to a stable Wikibase entity id and back, with the Wikidata QID anchoring preserved (a QID-anchored csid resolves to the same entity by either key) — proven by a round-trip test over a real corpus slice asserting csid -> entity -> csid is the identity function, including for QID-free alias-minted csids.",
+        "The 117 licence tier is a first-class, SPARQL-queryable attribute of each statement (property or reference qualifier, whichever the design justifies), such that a single query can return exactly the permissive-core statements and exactly the share-alike/non-commercial ones — demonstrated with the two queries committed as fixtures.",
+        "The design states explicitly what a downstream consumer (lugh's corpus export, the insimul pack, the KGP grounding packs) must change and what it must NOT — in particular that the `cs:` id-space is shared data whose change is a corpus migration, not a refactor."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-3",
+      "title": "Prove the model on a hard slice before committing to it",
+      "description": "Validate the ontology against the cases the TSV schema handles worst, using the stack from 120 — because a mapping that only works on the easy rows will be discovered to be wrong during the import, which is the expensive place to discover it.",
+      "acceptanceCriteria": [
+        "The mapping is instantiated on the 120 stack for a deliberately hard slice — a language with competing classifications from two sources at different ranks, a fact with temporal AND geographic qualifiers, a cross-domain lineage edge, and a share-alike-licensed statement — and each is queried back correctly via SPARQL, with the queries committed.",
+        "The properties and item classes the mapping needs are created reproducibly (a scripted bootstrap, not hand-clicks in the UI), so a fresh deployment reaches the same property ids — a second bootstrap onto an empty instance produces an equivalent ontology, asserted by a test.",
+        "Anything the model cannot express is recorded as a known limitation with its workaround, rather than left for 122 to discover; `.chief/verify.sh` passes and `bun run check:contracts` is green."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

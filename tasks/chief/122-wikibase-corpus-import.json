@@ -1,0 +1,58 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/122-wikibase-corpus-import",
+  "baseBranch": "main",
+  "description": "D4(b) step 3 of 5 — import the full corpus into Wikibase under the 121 ontology, idempotently and with provenance and licence tier intact (docs/DECISION-D4-CLDF-AND-WIKIBASE.md §5). This is the step where the migration becomes real, and it has exactly two failure modes worth engineering against. The first is a LOSSY import: a column silently unmapped, a provenance quartet flattened, a licence tier dropped — none of which is visible in a green run, all of which are unrecoverable once downstream consumers start reading the new store. The second is a NON-REPEATABLE import: a run that cannot be re-run against a changed corpus without duplicating entities, which turns every subsequent corpus change into a manual reconciliation. So the import is built as an idempotent, re-runnable, fully-reconciled pipeline with a completeness proof, not as a one-shot script. Ordering matters: this runs AFTER 117 so every record already carries a stored licence tier at admission (importing first and tiering later would recreate the exact defect D4 flagged), and after the 113 CLDF ingest so the substrate being imported is the ingested one rather than the hand-curated spine being retired. The TSV corpus remains the source of truth throughout this tasklist — the cutover is 124 — so this is a build-and-verify step that can be run repeatedly without risk. Scope: the import pipeline (scripts/ + engine side), its completeness/idempotency proofs, and the import runbook.",
+  "parked": false,
+  "dependsOn": [
+    "121-wikibase-property-ontology",
+    "117-license-tiering-at-ingest",
+    "113-run-phase-b-acquisitions"
+  ],
+  "touches": [
+    "store",
+    "corpus"
+  ],
+  "iters": 10,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "An idempotent, re-runnable full-corpus import",
+      "description": "Build the import pipeline that projects the TSV corpus into Wikibase under the 121 mapping, safe to re-run against a changed corpus.",
+      "acceptanceCriteria": [
+        "A documented command imports the full corpus (nodes, edges, provenance, licence tier) into a Wikibase instance under the 121 mapping, resuming cleanly after an interruption rather than restarting from zero — proven by killing and resuming a run.",
+        "Re-running the import against an UNCHANGED corpus is a no-op: no duplicate entities, no duplicate statements, no churn in the edit history — asserted by a test that runs the import twice and compares entity/statement counts and revision deltas.",
+        "Re-running against a CHANGED corpus applies exactly the delta: added rows create statements, changed cells update them, and a removed row is handled by an explicitly-stated policy (deprecated rank vs. deletion — whichever the design chose, applied consistently and documented), proven on a fixture corpus."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Prove the import is lossless — every column, every reference, every tier",
+      "description": "A completeness proof that fails loudly, because a silently lossy import is the single most damaging outcome of this program.",
+      "acceptanceCriteria": [
+        "A completeness check compares the imported store against the source corpus and reports per node type and per column: rows in, entities out, statements out, and any column whose values did not land — and it FAILS on a non-empty unmapped/unlanded set rather than reporting it as a warning.",
+        "Provenance survives at statement granularity: every imported statement that derived from a provenanced row carries its reference block (`source`, `source_url`, `retrieved_at`, `confidence`), and a test asserts the count of reference-free statements matches exactly the count of provenance-free source rows — no reference is invented and none is lost (never fabricate a URL, per the repo invariant).",
+        "Every imported statement carries its 117 licence tier, and the two fixture SPARQL queries from 121 US-2 return record counts that reconcile exactly with the corpus-tier report's permissive-core / share-alike / non-commercial / unknown tallies — a mismatch fails the check."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-3",
+      "title": "A runbook, a full-scale run, and its honest numbers",
+      "description": "Run the import at full corpus scale on the 120 stack and write down what it costs, so 123 and 124 are planned against measurements rather than estimates.",
+      "acceptanceCriteria": [
+        "A full-corpus import is executed on the 120 stack and its numbers are committed: entity/statement counts by type, wall-clock, throughput, updater lag to SPARQL visibility at full scale, and the resulting store footprint — compared against the US-2 extrapolation from 120 with the discrepancy explained.",
+        "A runbook in docs/ covers the operational path: how to run the import, how to resume it, how to verify completeness, how to roll back a bad run, and what to do when the updater falls behind — written to be followed by someone who did not build it.",
+        "`.chief/verify.sh` passes; the import pipeline's own tests run hermetically (fixture corpus, no live Wikibase required) so the merge gate never depends on a running stack."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

@@ -2,7 +2,7 @@
   "project": "pinakes",
   "branchName": "chief/107-glottolog-cldf-adapter",
   "baseBranch": "main",
-  "description": "Phase B source-adapter expansion (ROADMAP.md Phase B; engine/docs/sources-linguistic.md §Glottolog + Decision §2). Glottolog 5.x is the authoritative open language-family tree and the doc's \"best next target\" for a dedicated dump adapter, still unbuilt (WALS/PHOIBLE + kaikki already shipped as US-002/US-004). Build a Glottolog CLDF category spec on top of the reusable dump adapter (106): ~26k languoids, glottocodes + ISO 639-3, emitting the DESCENDS_FROM genealogy as canonical edges and anchoring language nodes on glottocode (Wikidata P1394). CC-BY-SA 3.0, so the licence string must travel with each record. A glottolog job stub already exists at engine/inputs/jobs/glottolog.yml. Scope: the Glottolog spec + mapping + fixtures.",
+  "description": "Phase B source-adapter expansion (ROADMAP.md Phase B; engine/docs/sources-linguistic.md §Glottolog + Decision §2). Glottolog 5.x is the authoritative open language-family tree and the doc's \"best next target\" for a dedicated dump adapter, still unbuilt (WALS/PHOIBLE + kaikki already shipped as US-002/US-004). Build a Glottolog CLDF category spec on top of the reusable dump adapter (106): ~26k languoids, glottocodes + ISO 639-3, emitting the DESCENDS_FROM genealogy as canonical edges and anchoring language nodes on glottocode (Wikidata P1394). LICENCE CORRECTION (D4 review, docs/DECISION-D4-CLDF-AND-WIKIBASE.md §2): Glottolog is CC-BY-4.0, NOT the CC-BY-SA-3.0 this description and 113 previously stated — it belongs in the permissive core, and stamping it share-alike would have propagated a duty the licence does not impose (docs/ATTRIBUTION.md already records the correct id). The licence string must still travel with each record. Under D4(a) this adapter is no longer an incremental top-up on a hand-curated spine: Glottolog becomes the language/family SUBSTRATE (113 runs it, 119 retires the superseded curated rows into it). A glottolog job stub already exists at engine/inputs/jobs/glottolog.yml. Scope: the Glottolog spec + mapping + fixtures.",
   "parked": false,
   "dependsOn": [
     "106-reusable-cldf-dump-adapter"
@@ -22,7 +22,7 @@
       "description": "Express Glottolog 5.x as a CLDF dump spec that the 106 adapter ingests, mapping the languoid family tree to DESCENDS_FROM edges and language nodes keyed on glottocode.",
       "acceptanceCriteria": [
         "A Glottolog CLDF category/job spec (building on engine/inputs/jobs/glottolog.yml) ingests via the 106 dump adapter, mapping languages.csv Family_ID/Parent_ID to DESCENDS_FROM genealogy edges and language nodes carrying glottocode + ISO 639-3 (anchor Wikidata P1394).",
-        "The CC-BY-SA 3.0 licence + Glottolog provenance travels with every emitted record.",
+        "The `CC-BY-4.0` licence (Glottolog's actual SPDX id — verified against the release's own CLDF metadata, not assumed) + Glottolog provenance travels with every emitted record.",
         "A hermetic test over a small Glottolog CLDF fixture asserts the genealogy edges + glottocode anchoring; `uv run --all-packages pytest engine/tests` passes."
       ],
       "passes": false,

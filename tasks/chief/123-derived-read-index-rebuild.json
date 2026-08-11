@@ -1,0 +1,56 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/123-derived-read-index-rebuild",
+  "baseBranch": "main",
+  "description": "D4(b) step 4 of 5 — demote Neo4j and DuckDB from stores to DERIVED READ-INDEXES (docs/DECISION-D4-CLDF-AND-WIKIBASE.md §5). Today Neo4j (graph) and DuckDB (analytical index) are populated from the TSV corpus and are, operationally, where the atlas's reads live; under D4(b) they keep serving every read they serve now but stop being anything a human or a process writes to directly — they become reproducible projections of the Wikibase store, rebuildable from scratch at any time. This is the step that makes the cutover in 124 safe, because it decouples two risks that would otherwise land together: 'can Wikibase hold the corpus' (122) and 'can the atlas still serve its reads at the same latency' (here). The atlas API surface must not change: services/api reads the indexes, the client reads the API, and neither should be able to tell where the data came from — the only difference is what rebuilds the index. Two properties carry the weight: the rebuild must be REPRODUCIBLE (same store state in, same index out, so a corrupted index is fixed by rebuilding rather than by repair) and it must be MEASURED against the current timings, so a regression is caught here rather than after the cutover. The read-path benchmarks from 120 US-2 are the baseline this is judged against. Scope: the index-build pipeline (engine + scripts), the API's read path where it needs re-pointing, and the rebuild runbook. No cutover — TSV is still the source of truth until 124.",
+  "parked": false,
+  "dependsOn": [
+    "122-wikibase-corpus-import"
+  ],
+  "touches": [
+    "store",
+    "engine"
+  ],
+  "iters": 10,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Rebuild Neo4j and DuckDB from the Wikibase store, reproducibly",
+      "description": "Repoint the index builders at Wikibase as their input, so both indexes are projections that can be dropped and rebuilt at will.",
+      "acceptanceCriteria": [
+        "A documented command rebuilds the Neo4j graph and the DuckDB analytical index from the Wikibase store from empty, with no TSV input on the path, and the run records wall-clock and resulting size for each.",
+        "The rebuild is reproducible: two rebuilds from the same store state produce indexes that agree on node/edge counts and on the `nodes_by_label`/`edges_by_type` fingerprint (the determinism boundary engine/src/pinakes_engine/schema/CLAUDE.md already defines), asserted by a test — with any deliberately non-deterministic field (e.g. an ingestion wall-clock) named and excluded.",
+        "Statement-level structure survives the projection: qualifiers and ranks are represented in the index in a form the existing queries can use (a deprecated-rank statement is not silently projected as an equal edge), with the projection rule documented and pinned by a test."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "The atlas read path is unchanged and no slower",
+      "description": "Prove that the API and client behave identically on the rebuilt indexes, and that read latency has not regressed against the pre-migration baseline.",
+      "acceptanceCriteria": [
+        "The full API suite (`uv run --all-packages pytest -q services/api/tests`) passes against the rebuilt indexes, and a parity check over the graph/search/analytics endpoints returns results equivalent to the TSV-built indexes for the same inputs — differences, where legitimate (e.g. rank-filtered statements), are enumerated and justified rather than accepted wholesale.",
+        "The 120 US-2 read benchmarks are re-run against the rebuilt indexes and tabulated against the pre-migration timings; a regression beyond a stated threshold is either fixed or recorded as an accepted cost with the reason — the numbers are committed, not summarised.",
+        "The Playwright smoke path (`bun run smoke:graph` + the e2e specs) is green against the rebuilt graph, so the browser-facing atlas is verified, not just the API."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-3",
+      "title": "Indexes are disposable, and everything says so",
+      "description": "Make the derived status structural rather than conventional: nothing writes to an index except the rebuild, and the docs/runbook state the new authority order.",
+      "acceptanceCriteria": [
+        "No write path to Neo4j or DuckDB survives outside the rebuild pipeline — any direct-write code path is removed or routed through the store, and a test or a documented check asserts the property so it cannot silently return.",
+        "A rebuild runbook in docs/ covers scheduled and on-demand rebuilds, how to detect a stale index (including when the Wikibase updater is lagging), and the recovery procedure for a corrupted index (drop and rebuild, never repair).",
+        "docs/engine-integration.md and the relevant CLAUDE.md layout/authority tables state that Neo4j and DuckDB are derived read-indexes; `.chief/verify.sh` passes."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
