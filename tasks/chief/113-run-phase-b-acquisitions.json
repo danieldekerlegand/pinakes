@@ -1,0 +1,59 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/113-run-phase-b-acquisitions",
+  "baseBranch": "main",
+  "description": "Phase B population run (ROADMAP.md Phase B; COVERAGE-AUDIT N6). The 106-109 adapters only BUILD the acquisition plumbing — nothing owns EXECUTING it, so 'adapter built' has been standing in for 'corpus populated'. This tasklist runs the acquisitions for real: the live Glottolog 5.x CLDF ingest (~26k languoids via the 107 spec), the DBpedia dbo:influencedBy edge pull (108), and the language-range-polygon coverage push past 133/200 (109), landing the results as committed TSVs through the standard acquire -> reconcile -> write-back (--add-rows) cascade, then re-baselining convergence-QA and regenerating every pinned snapshot the data change cascades into (docs/{engine-export-manifest,reconciliation-report,coverage-report,corpus-tier-report}.json + the lugh-checkout manifests, scripts/CLAUDE.md regeneration matrix). NETWORK REALITY, stated honestly: the acquisition steps need live egress (glottolog.org/Zenodo dumps, the DBpedia endpoint, Wikidata WDQS) — an agent runner without egress cannot perform them. The house pattern holds regardless: the networked step writes committed scripts/data/*-additions TSVs (or fixture-committed dump extracts) that are the network-free replay source, so CI and the verify gate never touch the network; if the runner lacks egress, the acquire step is run human-side and the tasklist lands + verifies the committed artifacts. Scope: acquisition runs, committed data TSVs, snapshot/baseline regeneration, coverage verification.",
+  "parked": false,
+  "dependsOn": [
+    "106-reusable-cldf-dump-adapter",
+    "107-glottolog-cldf-adapter",
+    "108-dbpedia-influencedby-adapter",
+    "109-language-range-polygon-source"
+  ],
+  "touches": [
+    "corpus",
+    "acquire"
+  ],
+  "iters": 10,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Run the live Glottolog CLDF ingest and land the genealogy",
+      "description": "Execute the 107 Glottolog spec against the real Glottolog 5.x CLDF release (~26k languoids), reconcile onto the existing corpus languages by glottocode/ISO 639-3, and land the results through the write-back cascade as committed TSVs.",
+      "acceptanceCriteria": [
+        "The 107 Glottolog CLDF spec is executed against a real Glottolog 5.x release (requires egress to glottolog.org/Zenodo; if the runner has none, the download/acquire step is performed human-side and this story lands + verifies its committed output), producing DESCENDS_FROM genealogy edges and glottocode-anchored language nodes at real scale — the run's languoid/edge counts are recorded (order ~26k languoids), not a fixture-sized result.",
+        "The acquired records land in data/source/lexicons/*.tsv via the standard reconcile -> write-back path (--add-rows / enrichment, per scripts/CLAUDE.md), deduped against the whole node type, with CC-BY-SA-3.0 licence + Glottolog provenance on every row and no fabricated URLs; the committed acquisition TSV (scripts/data/) is the network-free replay source.",
+        "`bun run convergence-qa` passes on the grown corpus (attribution + dedup-ratchet green, re-baselined via `bun run convergence-qa:baseline` only where counts legitimately move), and `.chief/verify.sh` passes."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Run the DBpedia edge pull and the range-polygon coverage push",
+      "description": "Execute the 108 DBpedia dbo:influencedBy pull and the 109 range-polygon source to push language-range-polygons past the 133/200 baseline, landing both through the same cascade.",
+      "acceptanceCriteria": [
+        "The 108 DBpedia adapter is executed against the live endpoint/dump (egress caveat as US-1), landing INFLUENCED_BY edges that reconcile against (never duplicate) the curated Wikidata-sourced edges, each row carrying the CC-BY-SA-3.0 licence + DBpedia provenance; the committed TSV is the replay source.",
+        "The 109 range-polygon source is executed and the ingested GeoJSON attaches to language nodes by glottocode/ISO, moving the /api/data-quality `language-range-polygons` coverage above 133/200 toward the 200 target (the run records exactly how far the source closes it if it lands short).",
+        "`bun run convergence-qa` and `.chief/verify.sh` pass on the combined data change; `uv run --all-packages pytest -q engine/tests services/api/tests` stays green."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-3",
+      "title": "Re-baseline, regenerate every pinned snapshot, and verify domain coverage",
+      "description": "Complete the node-lexicon-change cascade: regenerate all committed snapshots and the lugh-checkout manifests, re-baseline convergence-QA, and verify the domain coverage the population run was for.",
+      "acceptanceCriteria": [
+        "All committed snapshots the data change cascades into are regenerated and in sync: `npx tsx scripts/export-for-engine.ts` (docs/engine-export-manifest.json), `npx tsx scripts/reconciliation-report.ts` (docs/reconciliation-report.json), `npx tsx scripts/coverage-report.ts` (docs/coverage-report.{json,md}), the corpus-tier report, the convergence-QA baseline (docs/convergence-qa-baseline.json) where counts legitimately moved, and the entity-grounding/insimul fixture packs if their shape moved — the live-corpus parity tests all pass.",
+        "The cross-repo lugh cascade is executed in the sibling lugh checkout in order (pinakes-export-triples, -verbalizations, -kgqa, then -queries, then pinakes-eval-kgqa, per scripts/CLAUDE.md) so lugh's manifest tests are green against the grown corpus, not silently skipping; the run is recorded (lugh commits happen in lugh, not here).",
+        "/api/data-quality reports the post-run domain coverage — 15/15 Phase-15 domains at target if 109's source fully closes language-range-polygons, else the honest residual is recorded in the coverage report + ROADMAP row; `.chief/verify.sh` passes."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

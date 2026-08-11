@@ -1,0 +1,42 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/115-canonical-schema-v1-2",
+  "baseBranch": "main",
+  "description": "Canonical-schema extension for learned inference (COVERAGE-AUDIT N9). lugh's 210-scallop-virtuous-loop-writeback feeds the trained Scallop edge-scorer's probabilities back onto `inferred:` edges and is contract-bound to PROPOSE the schema change upstream to pinakes rather than fork it — its writeback dead-ends until pinakes lands (1) a LEARNED-PROBABILITY edge attribute (a soft, model-produced probability, deliberately distinct from the curated `confidence` column and the confidence-rubric priors) and (2) a REASONING-SCOPE marker recording which reasoning scope/run produced the value, so consistency/tier evaluators can read learned confidences without confusing them with curated ones. NAMING REALITY: lugh 210 and insimul 210 both call this 'canonical schema v1.2', a label coined before pinakes's contracts/canonical-schema.json reached its current version 1.3.0 — land the change as the NEXT version bump from the version on disk and record the 'v1.2' alias in the changelog/doc so the cross-repo references resolve. Deliverables: the contract JSON edit + `bun run gen:contracts` regeneration (never hand-edit generated bindings), docs/canonical-schema.md, and validator/export acceptance of the new columns. Downstream (out of scope, named): lugh re-vendors its byte-mirror after this lands.",
+  "parked": false,
+  "dependsOn": [],
+  "touches": [
+    "contracts",
+    "engine"
+  ],
+  "iters": 8,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Schema + contracts codegen for learned probability and reasoning scope",
+      "description": "Add the learned-probability edge attribute and the reasoning-scope marker to the canonical schema contract, bump the version, and regenerate both bindings.",
+      "acceptanceCriteria": [
+        "contracts/canonical-schema.json gains a learned-probability edge attribute (soft probability in [0,1], explicitly distinct from the curated `confidence` provenance column — the doc states which evaluators read which) and a reasoning-scope marker (identifying the reasoning scope/run that produced the value), with the version bumped from the on-disk 1.3.0 and the historical cross-repo 'v1.2' label recorded as an alias in docs/canonical-schema.md.",
+        "`bun run gen:contracts` regenerates the TS + Python bindings from the JSON source (both committed; nothing under contracts/generated/ or contracts/python/ hand-edited) and `bun run check:contracts` passes.",
+        "`bun run check`, `bun run test`, and `.chief/verify.sh` pass; the contract JSON parses."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Validators and the export/QA path accept the new columns",
+      "description": "The engine's schema validators, headers, and the convergence-QA drift gate accept (and correctly type) the new edge columns so a writeback carrying them round-trips instead of being rejected or silently dropped.",
+      "acceptanceCriteria": [
+        "The engine-side schema surfaces (pinakes_engine schema/headers + Datalog schema constraints, which parse the contract's own cells) accept edges carrying the learned-probability attribute + reasoning-scope marker, validate the probability range, and never conflate the value with curated `confidence`; tests cover an edge with and without the new columns.",
+        "The convergence-QA drift gate and the export/write-back path tolerate the new optional columns (no false 'unmapped column' drift, no writeback of graph-owned learned values into curated lexicons — the new columns join the non-writeback set), covered by a test.",
+        "The applicable gates pass: `uv run --all-packages pytest -q engine/tests`, `uv run ruff check .` + `uv run mypy src` (engine), and `.chief/verify.sh`; the change is documented as the upstream landing lugh 210's dependsOn waits on."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

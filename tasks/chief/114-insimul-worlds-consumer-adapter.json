@@ -1,0 +1,44 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/114-insimul-worlds-consumer-adapter",
+  "baseBranch": "main",
+  "description": "Bridge-2 consumer side (COVERAGE-AUDIT N8; contracts/bridge-insimul.json 'worlds as corpus'; insimul's 210-insimul-acquisition-adapter builds the PRODUCER side — a stable emitter projecting WorldIR + a world's Prolog KB to canonical TSV nodes/edges — and states 'the consumer side of that adapter lives in pinakes', which until now no pinakes tasklist owned). Build the pinakes ingest adapter that accepts insimul world exports into the canonical graph as the SYNTHETIC corpus tier: a `synthetic`/proprietary trust tier landing zone with world_id + generation seed provenance, reconciled through the bridge mapping (contracts/bridge-insimul.json + the vendored predicate-mapping registry — the mapping resolves in-repo, no forked vocabulary). Containment is the hard invariant: synthetic rows must be excluded by construction from every open-data surface (the canonical export's license-class filters, grounding packs, DOI snapshots), and the KINP identity firewall holds — a seeded entity is based_on/modelled_on a real one, NEVER same_as-merged. Scope: the engine acquire layer (a sibling of the other source adapters), tier/provenance plumbing, containment tests, docs.",
+  "parked": false,
+  "dependsOn": [
+    "insimul:210-insimul-acquisition-adapter"
+  ],
+  "touches": [
+    "engine",
+    "acquire"
+  ],
+  "iters": 8,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Ingest insimul world exports into the synthetic corpus tier",
+      "description": "An acquisition adapter that reads insimul's canonical-TSV world export and lands its nodes/edges in the graph under the `synthetic` trust tier with full generative provenance.",
+      "acceptanceCriteria": [
+        "An insimul acquisition adapter in engine/src/pinakes_engine/acquire/ (registered through acquire/factory.py like the other sources) ingests a world export (canonical TSV nodes/edges as insimul 210 emits them) into the canonical graph, with every record tagged `synthetic` trust tier, licence marked proprietary, and world_id + generation seed carried as provenance — a record missing tier/provenance is rejected, not defaulted.",
+        "The ingest resolves types/relations through contracts/bridge-insimul.json + the vendored registry mirror (a predicate the bridge does not authorize is a named rejection, never silently coined), and a malformed row goes down the bad-record path rather than aborting the run.",
+        "A hermetic test over a small in-repo world-export fixture asserts the tier, provenance, and bridge-resolved shape; `uv run --all-packages pytest -q engine/tests` passes and the engine gate is green (`uv run ruff check .` + `uv run mypy src` from engine/)."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Containment and the identity firewall, proven",
+      "description": "Synthetic-tier data can never leak into an open-data surface, and seeded identities are never merged with real ones.",
+      "acceptanceCriteria": [
+        "Tests prove containment by construction: `synthetic`/proprietary rows are excluded from the canonical open export's license-class-filtered surfaces, the entity-grounding/KGP pack builders, and the DOI-snapshot packaging path (the excluded-record tally may count them; no synthetic row is emitted), so the open-data promise survives the ingest.",
+        "The KINP §4.3 identity firewall holds on the consumer side too: a world entity carrying based_on/modelled_on a real entity is linked with that edge and is NEVER same_as-merged or csid-collapsed onto the real node; a test asserts no merge occurs for a based_on fixture entity.",
+        "The synthetic tier is visible where tiers are reported (the corpus-tier report and/or /api/data-quality) so the corpus honestly discloses its synthetic fraction; `.chief/verify.sh` passes and any spec/fixture JSON parses."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

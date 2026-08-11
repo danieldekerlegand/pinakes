@@ -7,7 +7,7 @@
 
 **Status:** Feature-complete & architecturally consolidated — the atlas *engine* is built and the
 corpus is populated (14/15 domains at target); now in a **production-hardening + data-growth** tail
-with a small, mined "second act" (Phases A–C below) · **Last updated:** 2026-08-10
+with a small, mined "second act" (Phases A–C below) · **Last updated:** 2026-08-11
 
 This is the single canonical roadmap. It consolidates three superseded product-roadmap
 documents (now under [`docs/roadmap/`](docs/roadmap/)) and the architecture-rewrite plan
@@ -52,7 +52,7 @@ acquisition/scraping, contribution + review, citation/versioned releases, fabric
   `finetune` capability (dispatched to the `lugh` checkout). *Caveat:* since the `80` Python-only
   cutover the `finetune` MCP tool is **advertised but its invoke degrades** — the Python service
   cannot spawn the `lugh` subprocess the way the retired Express front did (see Phase C).
-- **Chief program:** 16/16 built-program tasklists (`10`–`91`) merged; 13 proposed forward
+- **Chief program:** 16/16 built-program tasklists (`10`–`91`) merged; 17 proposed forward
   tasklists authored (`tasks/chief/*.json`, `passes:false`, unrun) — pending a run, not merged, of
   which 1 parked.
 
@@ -132,11 +132,18 @@ engine into a **browser-verified, asset-complete, citable** production atlas. So
 *Depends on:* the §15 populated corpus (shipped). The security tail is **human-only** — key custody
 and a history rewrite are not agent work — and does not block the other rows.
 
-### Phase B — Source-adapter expansion — ⬜ planned (scale: M)
+### Phase B — Source-adapter expansion & population — ⬜ planned (scale: M)
 
 Widen acquisition breadth past the shipped Wikidata/kaikki/WALS/PHOIBLE surfaces, and close the one
 data gap Wikidata cannot. Source: [`engine/docs/sources-linguistic.md`](engine/docs/sources-linguistic.md),
 [`engine/docs/sources-genetic.md`](engine/docs/sources-genetic.md).
+
+**Adapter built ≠ corpus populated.** The phase has two halves that must both land: the first four
+rows *build* the acquisition plumbing (hermetic, fixture-gated); the *population run* row then
+**executes** it — the live Glottolog/DBpedia/coverage acquisitions, the TSVs landed through the
+acquire → reconcile → write-back cascade, the re-baselined QA gates, and the regenerated pinned
+snapshots. Until `chief/113` runs, a green adapter tasklist means the atlas *could* be populated,
+not that it is.
 
 | Status | Milestone | Tasklist |
 |---|---|---|
@@ -144,11 +151,12 @@ data gap Wikidata cannot. Source: [`engine/docs/sources-linguistic.md`](engine/d
 | ⬜ | **Glottolog** 5.x CLDF category spec — the authoritative open language-family tree (`DESCENDS_FROM` genealogy); the doc's **"best next target"**, still unbuilt (WALS/PHOIBLE + kaikki already shipped, US-002/US-004) · M | `chief/107-glottolog-cldf-adapter` *(proposed)* |
 | ⬜ | **DBpedia `dbo:influencedBy`** adapter — broader (noisier) `INFLUENCED_BY`/derivation coverage; license-aware (CC-BY-SA) SPARQL/dump ingest (sources-genetic §"Next") · M | `chief/108-dbpedia-influencedby-adapter` *(proposed)* |
 | ⬜ | A **non-Wikidata `language-range-polygons`** source to close **133/200** — historical/modern range GeoJSON (Glottolog/Ethnologue-style boundaries), the one Phase-15 target Wikidata cannot supply · M | `chief/109-language-range-polygon-source` *(proposed)* |
+| ⬜ | **Run the Phase-B acquisitions** — execute the population the adapters only enable: live Glottolog ingest (~26k languoids), the DBpedia edge pull, the range-polygon coverage push; land committed TSVs, re-baseline convergence-QA, regenerate the pinned snapshots + the lugh-checkout manifests, verify domain coverage via `/api/data-quality`. *Needs live egress for the acquire steps (CI stays network-free via the committed replay TSVs)* · M | `chief/113-run-phase-b-acquisitions` *(proposed)* |
+| ⬜ | **Insimul worlds consumer adapter** (Bridge-2, cross-repo) — ingest insimul world exports into the canonical graph as the **`synthetic`** corpus tier (world_id + seed provenance, proprietary licence, containment from every open-data surface, `based_on` never `same_as`); the pinakes consumer half insimul's `210-insimul-acquisition-adapter` names · M | `chief/114-insimul-worlds-consumer-adapter` *(proposed)* |
 
-*Depends on:* none — all engine-side adapter work; `107`–`109` build on the reusable dump adapter
-(`106`) and the existing Getty/Pleiades dump-adapter pattern. *(Doc note: sources-linguistic.md's
-candidate table lists WALS/PHOIBLE as "not yet built," but its Decision §3 records them shipped as
-US-002 — the Decision is authoritative, so only Glottolog remains from that trio.)*
+*Depends on:* the adapter rows are engine-side and depend on nothing; `107`–`109` build on the
+reusable dump adapter (`106`), `113` depends on all four adapters (and needs live network egress
+for its acquire steps), and `114` depends cross-repo on insimul's `210` export emitter.
 
 ### Phase C — Fabric completion — ⬜ planned (scale: M)
 
@@ -160,15 +168,17 @@ built."** Source: [`docs/capability-bus.md`](docs/capability-bus.md) §"Not yet 
 | ⬜ | **KGP `subscribe`/`fetch`** verbs for the knowledge ports — today `subscribe` exists only for `finetune` telemetry; the knowledge ports surface only `describe` + `invoke` (KGP §6 delta subscriptions come with the grounding-pack work) · M | `chief/110-kgp-subscribe-fetch-verbs` *(proposed)* |
 | ⬜ | **Grant enforcement** — issuance / rotation / spend ceilings, plus grant-gated `budget_units` admission for `finetune` (today `cost.meter`/`est_units` publish the figure but no ceiling is checked); **cross-repo: orchestrator** owns the grant issuer (KCB §5) · M | `chief/111-grant-enforcement-and-budget-ceilings` *(proposed)* |
 | ⬜ | **Re-wire the KFT `finetune` MCP tool** — advertised-but-not-dispatchable since the `80` Python-only cutover (the Python service can't spawn the `lugh` subprocess the Express front did); resolve when `lugh:30-kft-provider-manifest` publishes `lugh:agent:finetune` and the fabric routes there directly · S | `chief/112-rewire-kft-finetune-mcp` *(proposed)* |
+| ⬜ | **Canonical-schema learned-probability + reasoning-scope** — the edge attribute (soft, model-produced probability distinct from curated `confidence`) + reasoning-scope marker that lugh `210`'s Scallop writeback proposes upstream and dead-ends without; contract JSON + codegen + validators (*the cross-repo "v1.2" label predates the on-disk 1.3.0 — lands as the next bump with the alias recorded*) · M | `chief/115-canonical-schema-v1-2` *(proposed)* |
 
-*Depends on:* **agora/orchestrator** (the grant issuer for `111`) and **lugh** (the
-`lugh:agent:finetune` manifest that retires the transitional advertisement in `112`).
+*Depends on:* **agora/orchestrator** (the grant issuer for `111`, encoded as
+`agora:67-kcb-grant-issuer`) and **lugh** (the `lugh:agent:finetune` manifest that retires the
+transitional advertisement in `112`; lugh `210` is the consumer waiting on `115`).
 
 ### Ongoing — steady-state, not a phase — 🚧 continuous
 
 | Status | Milestone | Tasklist |
 |---|---|---|
-| 🚧 | **Living dataset** — scheduled acquisition ingestion + annual DOI snapshot cadence keep the corpus current and citable (`/api/living-dataset/*`) | — |
+| 🚧 | **Living dataset** — scheduled acquisition ingestion + annual DOI snapshot cadence keep the corpus current and citable (`/api/living-dataset/*`); the annual-cadence half is now tasklisted on the shipped `91`/`102` machinery | `chief/116-doi-release-cadence` *(proposed)* |
 | 🚧 | **Data growth & freshness** — continue widening domains/coverage past the Phase-15 targets; refresh from upstream sources | — |
 
 > **Long-term outcomes** (multi-year, from the Phase-14 vision; not tasklistable): academic
@@ -189,13 +199,15 @@ Smaller open threads noted across the docs, none big enough to anchor a phase on
 
 ## Chief / Ralph / ralphy Tasklist Status
 
-- **Chief:** 16/16 built-program tasklists merged (`10`–`91`); 13 proposed forward tasklists
+- **Chief:** 16/16 built-program tasklists merged (`10`–`91`); 17 proposed forward tasklists
   authored (`tasks/chief/*.json`, `passes:false`, unrun) — pending a run, not merged, of which 1
   parked. Records in `tasks/chief/completed/`.
 - **Ralph:** product PRD runs (deep-history Phases 11–15) — complete, in `tasks/ralph/completed/`.
 - **ralphy:** earlier product batches (Phases 7–10) — complete, archived under `docs/archive/ralphy/`.
-- **13 proposed tasklists** (`chief/100`–`chief/112`) back the planned Phases A–C above — **now
-  authored** (`tasks/chief/*.json`, `passes:false`, unrun); they are numbered above the merged run.
+- **17 proposed tasklists** (`chief/100`–`chief/116`) back the planned Phases A–C + the Ongoing
+  cadence above — **now authored** (`tasks/chief/*.json`, `passes:false`, unrun); they are numbered
+  above the merged run. `113` is the Phase-B *population run* (the adapters `106`–`109` only build),
+  `114`/`115` carry the cross-repo insimul/lugh seams, `116` the annual DOI cadence.
 
 No open *autonomous* work remains in this repo; the tail above is human-directed / proposed.
 

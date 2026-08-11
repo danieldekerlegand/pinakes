@@ -13,10 +13,10 @@ existing acquisition stack.
 
 | Source | Coverage | Format | License | Ingestible now? |
 |---|---|---|---|---|
-| **Glottolog** 5.x | ~26k languoids; full genealogical family trees; glottocodes + ISO 639-3 | CLDF StructureDataset (CSV, tab/comma); GitHub + Zenodo dumps | CC-BY-SA 3.0 | Dump adapter (not yet built) |
+| **Glottolog** 5.x | ~26k languoids; full genealogical family trees; glottocodes + ISO 639-3 | CLDF StructureDataset (CSV, tab/comma); GitHub + Zenodo dumps | CC-BY-SA 3.0 | Dump adapter (not yet built — `chief/107`, proposed) |
 | **Wikidata** language-family properties | Languages, families, proto-languages as items; lexemes for etymology | SPARQL → native TSV/CSV/JSON | CC0 1.0 | **Yes** — existing `wikidata-sparql` adapter |
-| **WALS** (2020) | ~2.6k languages × ~190 structural features (phonology/grammar/lexicon) | CLDF StructureDataset (CSV); GitHub + Zenodo dumps | CC-BY 4.0 | Dump adapter (not yet built) |
-| **PHOIBLE** 2.0 | ~3k inventories, ~2.1k languages; segment/phoneme inventories | CLDF dataset (CSV); GitHub + Zenodo dumps | CC-BY-SA 3.0 | Dump adapter (not yet built) |
+| **WALS** (2020) | ~2.6k languages × ~190 structural features (phonology/grammar/lexicon) | CLDF StructureDataset (CSV); GitHub + Zenodo dumps | CC-BY 4.0 | **Yes** — shipped dump adapter (US-002; see Decision §3) |
+| **PHOIBLE** 2.0 | ~3k inventories, ~2.1k languages; segment/phoneme inventories | CLDF dataset (CSV); GitHub + Zenodo dumps | CC-BY-SA 3.0 | **Yes** — shipped dump adapter (US-002; see Decision §3) |
 | **Lexibank** wordlists (e.g. ABVD) | Concept/form wordlists across languages, many with expert cognate judgements; ABVD alone spans ~1,050 glottocodes | CLDF Wordlist (CSV); GitHub + Zenodo dumps | Per-dataset (mostly CC-BY 4.0) | Dump adapter — category-only |
 | **Wiktionary** etymology (via **kaikki.org** / wiktextract) | Broad cross-language etymologies/cognates/borrowings — the template vocabulary machine-parsed to structured JSON | kaikki.org JSONL (one object per word sense group) | CC-BY-SA 3.0 + GFDL | **Yes** — `kaikki` JSONL adapter |
 
@@ -44,8 +44,10 @@ already returns native TSV. This is the source the shipped category spec uses
 ### WALS / PHOIBLE
 Typological and phonological **feature** datasets rather than genealogies — they
 enrich language nodes (structural attributes, phoneme inventories) but do not by
-themselves yield the linguistic *edges*. Both are clean CLDF/CSV dumps and good
-later dump-adapter targets; WALS is CC-BY 4.0, PHOIBLE CC-BY-SA 3.0.
+themselves yield the linguistic *edges*. Both are clean CLDF/CSV dumps; WALS is
+CC-BY 4.0, PHOIBLE CC-BY-SA 3.0. **Both shipped** as dump-adapter ingests
+(US-002 — Decision §3 records them done), so of the CLDF trio only Glottolog's
+adapter remains to build (`chief/107`).
 
 ### Lexibank wordlists (ABVD)
 Lexibank aggregates hundreds of independently-published CLDF **wordlist** datasets
