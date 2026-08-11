@@ -64,7 +64,7 @@ driven by the PRDs / Ralph / ralphy) ran in parallel and are both complete; Phas
 the mined-but-unbuilt "second act"; the **Ongoing** and **Loose wishlist** blocks at the end cover
 steady-state and un-phased work. Status legend: **✅ shipped/merged · 🚧 partial / in-progress ·
 ⬜ not started**. The Tasklist column is the Chief tasklist that delivered a row (✅ merged) or the
-*(proposed)* one that would (none of the `chief/100+` rows are authored yet).
+*(proposed)* one that would (the `chief/100+` rows are now authored — `passes:false`, unrun).
 
 ### Architecture & platform track — ✅ complete
 
@@ -190,8 +190,8 @@ Smaller open threads noted across the docs, none big enough to anchor a phase on
 - **Chief:** 16/16 tasklists merged (`10`–`91`); **0 pending**. Records in `tasks/chief/completed/`.
 - **Ralph:** product PRD runs (deep-history Phases 11–15) — complete, in `tasks/ralph/completed/`.
 - **ralphy:** earlier product batches (Phases 7–10) — complete, archived under `docs/archive/ralphy/`.
-- **~12 proposed tasklists** (`chief/100`–`chief/112`) back the planned Phases A–C above — **none
-  authored yet** (no `tasks/chief/*.json`); they are roadmap stubs numbered above the merged run.
+- **13 proposed tasklists** (`chief/100`–`chief/112`) back the planned Phases A–C above — **now
+  authored** (`tasks/chief/*.json`, `passes:false`, unrun); they are numbered above the merged run.
 
 No open *autonomous* work remains in this repo; the tail above is human-directed / proposed.
 
