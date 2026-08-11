@@ -52,7 +52,9 @@ acquisition/scraping, contribution + review, citation/versioned releases, fabric
   `finetune` capability (dispatched to the `lugh` checkout). *Caveat:* since the `80` Python-only
   cutover the `finetune` MCP tool is **advertised but its invoke degrades** — the Python service
   cannot spawn the `lugh` subprocess the way the retired Express front did (see Phase C).
-- **Chief program:** all 16 tasklists (`10`–`91`) merged; **nothing pending**.
+- **Chief program:** 16/16 built-program tasklists (`10`–`91`) merged; 13 proposed forward
+  tasklists authored (`tasks/chief/*.json`, `passes:false`, unrun) — pending a run, not merged, of
+  which 1 parked.
 
 ---
 
@@ -187,7 +189,9 @@ Smaller open threads noted across the docs, none big enough to anchor a phase on
 
 ## Chief / Ralph / ralphy Tasklist Status
 
-- **Chief:** 16/16 tasklists merged (`10`–`91`); **0 pending**. Records in `tasks/chief/completed/`.
+- **Chief:** 16/16 built-program tasklists merged (`10`–`91`); 13 proposed forward tasklists
+  authored (`tasks/chief/*.json`, `passes:false`, unrun) — pending a run, not merged, of which 1
+  parked. Records in `tasks/chief/completed/`.
 - **Ralph:** product PRD runs (deep-history Phases 11–15) — complete, in `tasks/ralph/completed/`.
 - **ralphy:** earlier product batches (Phases 7–10) — complete, archived under `docs/archive/ralphy/`.
 - **13 proposed tasklists** (`chief/100`–`chief/112`) back the planned Phases A–C above — **now
