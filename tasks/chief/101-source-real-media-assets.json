@@ -1,0 +1,42 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/101-source-real-media-assets",
+  "baseBranch": "main",
+  "description": "Phase A production-hardening (ROADMAP.md Phase A; prd-pinakes-deep-history-roadmap.md §14.2/§14.3, §16). Several Phase-14 features shipped with SPECULATIVE FALLBACKS: IPA / music-pronunciation audio and glTF/3D artifact models are placeholders. This tasklist sources real, license-clean assets for the domains that have them, wires an asset manifest + provenance/licence record, and makes the UI prefer the real asset while keeping the fallback for the long tail. Scope: the asset manifest + acquisition path (engine/acquire side where an adapter fetches assets), web/ media/3D viewers, and docs. Serializes with other client work on the `client` domain.",
+  "parked": false,
+  "dependsOn": [],
+  "touches": [
+    "client",
+    "assets"
+  ],
+  "iters": 8,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Licence-clean asset manifest + provenance record",
+      "description": "Define a versioned asset manifest that maps corpus entities to real IPA/music audio and glTF/3D models, each carrying source + licence, so the corpus stays citable and share-alike-correct.",
+      "acceptanceCriteria": [
+        "A manifest (schema + a populated seed) maps entities to real audio (IPA/music-pronunciation) and glTF/3D artifact assets, each with source URL, licence string, and a checksum, mirroring how the Getty/Pleiades adapters carry a licence per record.",
+        "A validator/test asserts every manifest entry has a licence + resolvable checksum and that no entry ships without provenance.",
+        "The applicable Python gate is green: `uv run --all-packages pytest engine/tests`, `uv run ruff check .` (engine), `uv run mypy src` (engine)."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "UI prefers the real asset, falls back gracefully",
+      "description": "Wire the media/3D viewers to load the real manifest asset when present and fall back to the speculative placeholder otherwise, with no regression for entities that still lack an asset.",
+      "acceptanceCriteria": [
+        "The audio player and 3D/glTF viewer resolve the real asset from the manifest when one exists and cleanly fall back to the existing placeholder when it does not, with a visible provenance/attribution credit for real assets (share-alike compliance).",
+        "`bun run check` (tsc) and `bun run test` (vitest) pass; `bun run check:scripts` passes if scripts/ is touched.",
+        "A coverage note records how many domains now have real assets vs fallback, tied to the /api/data-quality style report."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

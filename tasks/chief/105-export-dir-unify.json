@@ -1,0 +1,42 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/105-export-dir-unify",
+  "baseBranch": "main",
+  "description": "Phase A production-hardening (ROADMAP.md Phase A; docs/UNIFIED-PROJECT-PLAN.md §4). The blanket culture-scrape->pinakes_engine rename left the engine's corpus export under the TRACKED path `export/pinakes_engine/` instead of the intended gitignored `build/corpus`. The engine CLAUDE.md documents the live export as `../build/corpus`; align reality to that so corpus artifacts are regenerable and not accidentally tracked. Scope: the engine export path (engine/acquire/writer.py + the categories/jobs relative paths resolved from the CLI cwd), .gitignore, the packaging/publish tooling (chief/91) that reads build/corpus, and docs. Serializes with corpus work on the `corpus` domain.",
+  "parked": false,
+  "dependsOn": [],
+  "touches": [
+    "corpus",
+    "repo-layout"
+  ],
+  "iters": 6,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Export lands in gitignored build/corpus, not tracked export/",
+      "description": "Point the engine export at build/corpus (nodes/ + edges/), untrack the stray export/pinakes_engine tree, and gitignore the build output.",
+      "acceptanceCriteria": [
+        "The engine writes its corpus export to build/corpus (matching engine/CLAUDE.md's documented `../build/corpus`); the tracked export/pinakes_engine tree is removed from git and build/corpus is gitignored.",
+        "The chief/91 packaging path and any tooling/tests that read the export resolve build/corpus with no stale export/ path left behind (`git grep -n 'export/pinakes_engine'` returns nothing outside history/docs).",
+        "The engine gate is green: `uv run --all-packages pytest engine/tests`, `uv run ruff check .` (engine), `uv run mypy src` (engine)."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Regenerate + verify the corpus round-trips through the new path",
+      "description": "Confirm a fresh export regenerates into build/corpus and the deterministic packaging still produces a stable tarball from it.",
+      "acceptanceCriteria": [
+        "A documented export run regenerates build/corpus, and the 91 packaging script tars it to a stable sha256 from the new path (the export -> package -> sha256 loop works end to end).",
+        "docs (UNIFIED-PROJECT-PLAN §4 / artifact-versioning.md) reflect build/corpus as the single export location.",
+        "`.chief/verify.sh` passes; any JSON touched parses."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/104-legacy-tsc-cleanup",
+  "baseBranch": "main",
+  "description": "Phase A production-hardening (ROADMAP.md Phase A; prd-pinakes-deep-history-roadmap.md §\"Not yet hardened\"). `bun run check` (tsc over web/ + contracts) carries ~145 pre-existing TypeScript errors from the pre-cutover era. The verify hook's TS check is a hard gate today (see .chief/verify.sh header), so this legacy baseline is dead weight. Drive the 145 errors to zero so `bun run check` is a real, clean gate on every future client change. Scope: web/ client TS, contracts consumers, and scripts/ where check:scripts overlaps — no behavior change, types only. Serializes with other client work on the `client` domain.",
+  "parked": false,
+  "dependsOn": [],
+  "touches": [
+    "client",
+    "typescript"
+  ],
+  "iters": 8,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Drive `bun run check` to zero errors",
+      "description": "Fix the ~145 pre-existing tsc errors under web/ + contracts so the hard-gated typecheck passes clean, without changing runtime behavior.",
+      "acceptanceCriteria": [
+        "`bun run check` (tsc -p web/tsconfig.json) reports zero errors; the fixes are type-only (no behavior change) and do not weaken config by disabling strictness wholesale or blanket `// @ts-ignore`.",
+        "`bun run check:scripts` (scripts/ has its own tsconfig) is also clean.",
+        "`bun run test` (vitest) stays green — no test was broken to satisfy the typechecker."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Keep the gate clean going forward",
+      "description": "Ensure the now-clean typecheck stays a real hard gate — no reintroduced baseline, contract bindings still consistent.",
+      "acceptanceCriteria": [
+        "`bun run check:contracts` passes (generated bindings consistent) if any contract consumer was touched, and `bun run check:registry-mirror` passes if a registry-shaped file changed.",
+        "The .chief/verify.sh TS check needs no baseline-diff shim (it can stay the hard gate its header describes); a note records that the legacy baseline is retired.",
+        "`.chief/verify.sh` passes on the diff."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

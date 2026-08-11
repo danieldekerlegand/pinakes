@@ -1,0 +1,42 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/110-kgp-subscribe-fetch-verbs",
+  "baseBranch": "main",
+  "description": "Phase C fabric completion (ROADMAP.md Phase C; docs/capability-bus.md §\"Not yet built\"). Today the knowledge ports surface only `describe` (the manifest) and `invoke` (the built endpoints); `subscribe` exists only for the finetune telemetry stream. Add the KGP `subscribe` / `fetch` verbs for the knowledge ports so a fabric peer can pull a knowledge slice (`fetch`) and receive KGP §6 delta subscriptions (`subscribe`) as the grounding-pack work needs. Implement against koine's KGP contract — do not re-specify it. Scope: the capability-bus / KCB surface (services/api/src/pinakes/routers/capability_bus.py, kcb/mcp.py) + the manifest (contracts/capability-manifest) + tests. Serializes with the other Phase-C rows on the `capability-bus` domain.",
+  "parked": false,
+  "dependsOn": [],
+  "touches": [
+    "python-api",
+    "capability-bus"
+  ],
+  "iters": 8,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "KGP fetch for the knowledge ports",
+      "description": "Add the KGP fetch verb so a peer can pull a bounded knowledge slice from a knowledge port, per koine's KGP contract.",
+      "acceptanceCriteria": [
+        "The knowledge ports expose a KGP `fetch` verb (alongside describe/invoke) that returns a bounded knowledge slice, implemented against koine's KGP contract (contracts/capability-manifest advertises the verb).",
+        "The applicable gates pass: `uv run --all-packages pytest services/api/tests`, `uv run --all-packages ruff check services/api`, `uv run --directory services/api --all-packages mypy`.",
+        "`bun run check:contracts` passes (bindings regenerated, no drift) since the manifest/contract source changed."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "KGP subscribe (delta subscriptions) for the knowledge ports",
+      "description": "Add the KGP subscribe verb (KGP §6 delta subscriptions) to the knowledge ports, generalizing beyond the finetune-only telemetry subscribe that exists today.",
+      "acceptanceCriteria": [
+        "The knowledge ports expose a KGP `subscribe` verb delivering KGP §6 deltas, distinct from the existing finetune telemetry stream; the manifest advertises it and it is exercised by a test.",
+        "A test asserts a subscriber receives deltas for a changed knowledge slice (not just a static describe), and the MCP tool surface (kcb/mcp.py) reflects the new verbs.",
+        "`.chief/verify.sh` passes; the capability-manifest JSON parses and `bun run check:registry-mirror` passes if a registry-shaped file changed."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

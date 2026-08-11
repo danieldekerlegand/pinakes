@@ -1,0 +1,44 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/108-dbpedia-influencedby-adapter",
+  "baseBranch": "main",
+  "description": "Phase B source-adapter expansion (ROADMAP.md Phase B; engine/docs/sources-genetic.md §DBpedia + Decision §2). Add a DBpedia `dbo:influencedBy` adapter for broader (noisier) INFLUENCED_BY / derivation coverage than the curated Wikidata statements the existing wikidata-sparql adapter yields. License-aware: DBpedia is CC-BY-SA 3.0, so the licence string must travel with each record as the Getty/Pleiades adapters do (contrast the CC0 Wikidata path). Ingest via SPARQL endpoint or RDF dump on top of the reusable dump adapter (106). Scope: the engine acquire layer + a DBpedia source spec mapping dbo:influencedBy -> INFLUENCED_BY + fixtures. Serializes with the other Phase-B adapters on the `acquire` domain.",
+  "parked": false,
+  "dependsOn": [
+    "106-reusable-cldf-dump-adapter"
+  ],
+  "touches": [
+    "engine",
+    "acquire"
+  ],
+  "iters": 8,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "DBpedia dbo:influencedBy -> INFLUENCED_BY ingest",
+      "description": "Add a DBpedia adapter/spec that ingests dbo:influencedBy (and the narrow inspired-by form) into canonical INFLUENCED_BY edges, license-aware.",
+      "acceptanceCriteria": [
+        "A DBpedia source (source.type: dump or a SPARQL-endpoint spec, reusing the 106 plumbing where applicable) ingests dbo:influencedBy statements into canonical INFLUENCED_BY edges, aligned with the same relation the wikidata-sparql adapter already emits (Wikidata P737).",
+        "Every emitted record carries the CC-BY-SA 3.0 licence string + DBpedia provenance, so share-alike attribution travels with the (noisier) coverage.",
+        "A hermetic test over a small DBpedia fixture (RDF/SPARQL-result) asserts the INFLUENCED_BY edges + licence; `uv run --all-packages pytest engine/tests` passes."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "De-dupe against the curated Wikidata edges",
+      "description": "Since DBpedia mirrors Wikipedia infoboxes it overlaps the curated Wikidata statements; ensure the broader DBpedia edges reconcile rather than duplicate.",
+      "acceptanceCriteria": [
+        "DBpedia INFLUENCED_BY edges that duplicate an existing Wikidata-sourced edge reconcile (merge/dedupe with provenance retained) instead of creating parallel edges, covered by a test.",
+        "The engine gate is green: `uv run ruff check .` (engine) and `uv run mypy src` (engine).",
+        "`.chief/verify.sh` passes; the spec + fixture JSON parse."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/106-reusable-cldf-dump-adapter",
+  "baseBranch": "main",
+  "description": "Phase B source-adapter expansion (ROADMAP.md Phase B; engine/docs/sources-linguistic.md Decision §2). A reusable CLDF dump adapter (`source.type: dump`) is the shared plumbing every CLDF source below (Glottolog 107, WALS/PHOIBLE-shaped, Lexibank) rides on. Model it on the existing Getty/Pleiades dump adapters (engine/src/pinakes_engine/acquire/{getty,pleiades,wikidata_dump_adapter}.py, wired through acquire/factory.py) so a new CLDF source is a category/job spec, not new adapter code. Licence-aware: CLDF sources are CC-BY / CC-BY-SA, so the licence string must travel with each record as Getty/Pleiades already do. Scope: the engine acquire layer + a job/category spec + hermetic fixtures. Head of the Phase-B chain; depends on nothing.",
+  "parked": false,
+  "dependsOn": [],
+  "touches": [
+    "engine",
+    "acquire"
+  ],
+  "iters": 8,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "A generic CLDF dump adapter",
+      "description": "Add a reusable CLDF StructureDataset/Wordlist dump adapter registered under source.type: dump, reading CLDF CSV (tab/comma) tables and emitting canonical nodes/edges, modelled on the Getty/Pleiades dump adapters.",
+      "acceptanceCriteria": [
+        "A new CLDF dump adapter in engine/src/pinakes_engine/acquire/ is registered through acquire/factory.py and reads a CLDF release (languages.csv + the parameter/value tables, tab or comma) into canonical records, driven entirely by a source spec (no per-source Python).",
+        "Each emitted record carries its licence string (CC-BY / CC-BY-SA) and source provenance, exactly as the Getty/Pleiades adapters do, so share-alike attribution travels with the data.",
+        "A hermetic test drives the adapter over a tiny in-repo CLDF fixture and asserts the canonical nodes/edges + licence are produced; `uv run --all-packages pytest engine/tests` passes."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Spec-driven: a new CLDF source needs no new adapter code",
+      "description": "Prove the plumbing is reusable by expressing a CLDF source purely as a category/job spec that the shared adapter consumes.",
+      "acceptanceCriteria": [
+        "A CLDF source is added as an engine/inputs job/category spec (source.type: dump) that the generic adapter ingests with no new adapter module, demonstrating the shared plumbing 107-109 build on.",
+        "The adapter handles a malformed/truncated record via the bad-record path (as the wikidata dump reader does) rather than aborting the run, covered by a fixture.",
+        "The engine gate is green: `uv run ruff check .` (engine) and `uv run mypy src` (engine); `.chief/verify.sh` passes and any spec JSON parses."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

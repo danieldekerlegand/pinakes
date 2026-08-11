@@ -1,0 +1,40 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/103-rotate-keys-purge-env-history",
+  "baseBranch": "main",
+  "description": "Phase A security tail (ROADMAP.md Phase A; prd-pinakes-deep-history-roadmap.md §16). The `security-hardening` pass closed everything else; this is the one open key-custody item: rotate the exposed Gemini / Google-Translate keys and purge `.env` from git history + force-push. PARKED — the roadmap flags this HUMAN-ONLY: rotating live credentials and rewriting/force-pushing shared git history are not autonomous-agent work. Kept as a tracked, runnable-by-a-human tasklist so the item is not lost; it does not block the other Phase-A rows. Scope: credential rotation (out-of-band), git history rewrite, and the ignore/secret-handling hardening left in-tree.",
+  "parked": true,
+  "dependsOn": [],
+  "touches": [
+    "security",
+    "ci"
+  ],
+  "iters": 4,
+  "warmup": [],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Rotate the exposed credentials (human-only)",
+      "description": "Rotate the exposed Gemini/Google-Translate API keys out of band and confirm the old keys are revoked.",
+      "acceptanceCriteria": [
+        "The exposed Gemini and Google-Translate keys are rotated in the provider console and the old keys are confirmed revoked (verified out-of-band, recorded in the security note).",
+        "The new keys are supplied only via environment/secret store — never committed — and the app reads them from the environment as before.",
+        "A short SECURITY/rotation note records that rotation happened, when, and by whom (no secret values in the note)."
+      ],
+      "passes": false,
+      "notes": "Human-only: credential rotation is out-of-band. Parked so chief never runs it autonomously."
+    },
+    {
+      "id": "US-2",
+      "title": "Purge .env from git history + harden ignores (human-only)",
+      "description": "Rewrite git history to remove the committed `.env`, force-push, and harden the repo so a secret file cannot be re-committed.",
+      "acceptanceCriteria": [
+        "`.env` is removed from the entire git history (git-filter-repo/BFG) and the rewritten history is force-pushed after coordinating with collaborators.",
+        "`.gitignore` covers `.env`/secret files and a committed-secret guard (pre-commit or CI scan) is in place so it cannot recur.",
+        "`git log --all -- .env` returns nothing after the rewrite."
+      ],
+      "passes": false,
+      "notes": "Human-only: history rewrite + force-push require operator judgement and coordination."
+    }
+  ]
+}

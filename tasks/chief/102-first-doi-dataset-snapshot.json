@@ -1,0 +1,42 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/102-first-doi-dataset-snapshot",
+  "baseBranch": "main",
+  "description": "Phase A production-hardening (ROADMAP.md Phase A; prd-pinakes-deep-history-roadmap.md §16, §12.4). chief/91 built the deterministic corpus-packaging + private release-asset path; this tasklist takes the FIRST real, versioned, citable DOI snapshot off the POPULATED corpus — a minted DOI, a dataset landing page with the citation/BibTeX, and the coverage the snapshot represents. Producer side of the citable-atlas promise. Scope: the release/packaging tooling (building on 91's script + docs/artifact-versioning.md), the citation/DOI surfaces (services/api living-dataset / _release routers), and docs. Depends on 91 (merged) and the §15 corpus (shipped), so no in-repo dependsOn.",
+  "parked": false,
+  "dependsOn": [],
+  "touches": [
+    "corpus",
+    "ci"
+  ],
+  "iters": 6,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Mint a DOI for a versioned corpus snapshot",
+      "description": "Take a versioned snapshot of the populated corpus via the 91 packaging path and mint a DOI (Zenodo/DataCite), recording the DOI + version + sha256 in the corpus release manifest.",
+      "acceptanceCriteria": [
+        "The 91 deterministic packaging script produces the versioned tarball + sha256 for the current populated corpus, and a documented step mints/records a DOI against that exact version (DOI + version + sha256 land in the release manifest, e.g. engine/docs/corpus-release-manifest.json).",
+        "The DOI-mint step is documented in docs/artifact-versioning.md as the citable-snapshot handoff and is idempotent for a given corpus version (re-running does not mint a second DOI).",
+        "A test asserts the snapshot's recorded DOI/version/sha256 are present and internally consistent."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Citation surface for the snapshot",
+      "description": "Expose the minted DOI as a citation on the dataset/release surface so a researcher can cite the exact snapshot.",
+      "acceptanceCriteria": [
+        "The living-dataset / release surface (services/api/src/pinakes/routers/{living_dataset,_release}.py) serves the snapshot's DOI + a formatted citation (BibTeX + human string) for the released version.",
+        "The applicable gates pass: `uv run --all-packages pytest services/api/tests`, `uv run --all-packages ruff check services/api`, `uv run --directory services/api --all-packages mypy`, and `bun run test` if any TS/client surface is touched.",
+        "`.chief/verify.sh` passes; the release-manifest JSON parses."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

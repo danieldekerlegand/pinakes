@@ -1,0 +1,44 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/112-rewire-kft-finetune-mcp",
+  "baseBranch": "main",
+  "description": "Phase C fabric completion (ROADMAP.md Phase C; docs/capability-bus.md, Current State caveat). Since the 80 Python-only cutover the KFT `finetune` MCP tool is ADVERTISED but its invoke degrades — the FastAPI service cannot spawn the lugh subprocess the retired Express front did. Re-wire it so finetune dispatches correctly: instead of spawning a local subprocess, route to lugh's published `lugh:agent:finetune` provider over the fabric (MCP/A2A, peer-dialed per koine ADR-0001), retiring the transitional in-process advertisement. CROSS-REPO: resolves when lugh publishes its provider manifest, so this depends on lugh:30-kft-provider-manifest. Scope: the KCB/MCP finetune tool (services/api capability_bus.py, kcb/mcp.py) + the manifest + tests. Serializes with other Phase-C rows on `capability-bus`.",
+  "parked": false,
+  "dependsOn": [
+    "lugh:30-kft-provider-manifest"
+  ],
+  "touches": [
+    "python-api",
+    "capability-bus"
+  ],
+  "iters": 6,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Dispatch finetune to the lugh provider over the fabric",
+      "description": "Replace the broken local-subprocess dispatch with a fabric route to lugh:agent:finetune, resolved and peer-dialed via the KINP/KCB surfaces rather than spawned in-process.",
+      "acceptanceCriteria": [
+        "The finetune MCP tool dispatches to lugh's published `lugh:agent:finetune` provider over MCP/A2A (address resolved via the KCB registry, peer-dialed per koine ADR-0001 — no central proxy, no local subprocess spawn), replacing the degraded post-80 path.",
+        "The transitional in-process advertisement is retired so the manifest advertises exactly what is dispatchable; a job outside lugh's envelope surfaces the graded refusal that names agora's general trainer.",
+        "The applicable gates pass: `uv run --all-packages pytest services/api/tests`, `uv run --all-packages ruff check services/api`, `uv run --directory services/api --all-packages mypy`."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Test the routed finetune invoke hermetically",
+      "description": "Pin the re-wired dispatch with a test that uses a stub lugh provider so it needs no live lugh checkout.",
+      "acceptanceCriteria": [
+        "A hermetic test drives a finetune invoke against a stubbed lugh:agent:finetune endpoint and asserts the request is routed (not subprocess-spawned) and the response is surfaced, plus the envelope-refusal path.",
+        "`bun run check:contracts` passes if the capability-manifest/contract source changed; the manifest JSON parses.",
+        "`.chief/verify.sh` passes on the diff."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

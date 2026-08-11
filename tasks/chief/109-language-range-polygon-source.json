@@ -1,0 +1,44 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/109-language-range-polygon-source",
+  "baseBranch": "main",
+  "description": "Phase B source-adapter expansion (ROADMAP.md Phase B; ROADMAP §15 data gap). `language-range-polygons` is the ONE Phase-15 target Wikidata cannot supply — it landed at 133/200 because Wikidata carries no inline range polygons, honestly flagged in /api/data-quality. Add a NON-Wikidata source of historical/modern language-range GeoJSON (Glottolog/Ethnologue-style boundaries) to close the gap, ingested via the reusable dump adapter (106) and reconciled onto language nodes by glottocode/ISO. License-aware per source. Scope: the engine acquire layer + a range-polygon source spec + the map/geometry surface (services/api map_layers / data_quality coverage) + fixtures.",
+  "parked": false,
+  "dependsOn": [
+    "106-reusable-cldf-dump-adapter"
+  ],
+  "touches": [
+    "engine",
+    "acquire"
+  ],
+  "iters": 8,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Ingest non-Wikidata language-range GeoJSON",
+      "description": "Add a range-polygon source (historical/modern language boundaries as GeoJSON) that the 106 adapter ingests into canonical range-polygon geometry keyed to language nodes.",
+      "acceptanceCriteria": [
+        "A non-Wikidata range-polygon source spec (Glottolog/Ethnologue-style GeoJSON boundaries) ingests via the 106 dump adapter into canonical language-range-polygon geometry, attached to language nodes by glottocode/ISO 639-3.",
+        "Each record carries its source + licence string (per-source, share-alike-correct where required).",
+        "A hermetic test over a small GeoJSON fixture asserts the polygons attach to the right language nodes; `uv run --all-packages pytest engine/tests` passes."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Move the coverage past 133/200",
+      "description": "Wire the new geometry so the atlas map + the data-quality coverage report reflect the closed gap.",
+      "acceptanceCriteria": [
+        "The ingested polygons surface through the map/geometry API (services/api map_layers) and the /api/data-quality coverage for language-range-polygons rises above the 133/200 baseline (or the run documents exactly how far the chosen source closes it).",
+        "The applicable gates pass: `uv run --all-packages pytest {engine,services/api}/tests`, `uv run --all-packages ruff check services/api`, `uv run --directory services/api --all-packages mypy`.",
+        "`.chief/verify.sh` passes; spec/fixture JSON parse."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

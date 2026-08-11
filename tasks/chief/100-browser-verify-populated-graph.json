@@ -1,0 +1,54 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/100-browser-verify-populated-graph",
+  "baseBranch": "main",
+  "description": "Phase A production-hardening (ROADMAP.md Phase A; prd-pinakes-deep-history-roadmap.md §16 / §\"Not yet hardened\"). The atlas engine and the 14/15-domain corpus are shipped, but the UI stories are only unit-test-gated — never browser-verified against the POPULATED Neo4j graph. Bring the full stack up against real data (`bun run dev:full` + `bun run smoke:graph`) and drive the existing Playwright specs (e2e/{graph-ui,civilizations,smoke}.spec.ts) against it, so a green suite means the atlas actually renders the populated corpus, not fixtures. Scope: e2e/ specs, the smoke:graph/dev:full wiring, web/ fixes surfaced by real data, and docs. The corpus (§15) is shipped, so this depends on nothing.",
+  "parked": false,
+  "dependsOn": [],
+  "touches": [
+    "client",
+    "e2e"
+  ],
+  "iters": 8,
+  "warmup": [
+    "bun install"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Stand the full stack up against the populated graph and smoke it",
+      "description": "Bring the FastAPI service + Vite client up against a corpus-loaded Neo4j and confirm the graph surface answers with real data via the existing smoke:graph gate.",
+      "acceptanceCriteria": [
+        "`bun run dev:full` starts the Python service and the client together against a Neo4j loaded from build/corpus (or a documented reduced fixture load), with a repeatable, documented one-command bring-up.",
+        "`bun run smoke:graph` passes against that populated graph and asserts non-empty results for the core domains (civilizations, sites, deities, writing systems, languages), not empty/fixture responses.",
+        "A short docs/ runbook records the bring-up + the corpus load step so the verification is reproducible; `.chief/verify.sh` passes on the diff."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Drive the Playwright specs against real data and fix what breaks",
+      "description": "Run the existing e2e specs against the populated stack, fixing the web/ or route defects that only surface with real data, so the unit-gated UI stories are browser-verified.",
+      "acceptanceCriteria": [
+        "`bun run test:e2e` runs e2e/{graph-ui,civilizations,smoke}.spec.ts against the populated stack and passes; specs assert on real corpus content (a real civilization/lineage renders end to end), not just that the page loads.",
+        "Any web/ or /api defect the real-data run exposes is fixed; `bun run check` (tsc over web/ + contracts) and `bun run test` (vitest) stay green, and `bun run check:scripts` passes if scripts/ is touched.",
+        "The e2e run is wired so it is runnable in CI / by hand with the documented bring-up."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-3",
+      "title": "Record the browser-verification coverage",
+      "description": "Capture which atlas UI stories are now browser-confirmed against the populated graph and which remain gaps, so §\"Not yet hardened\" is honestly closed or scoped.",
+      "acceptanceCriteria": [
+        "docs/ (or the roadmap's hardening note) lists each browser-verified UI story with the spec that proves it, and flags any story still un-verified with the reason.",
+        "The /api/data-quality coverage the run relies on is referenced so the verification tracks the same coverage numbers the atlas reports.",
+        "`.chief/verify.sh` passes; any JSON added parses."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
