@@ -1,0 +1,46 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/130-souffle-datalog-and-splink-resolution",
+  "description": "Replace the two subsystems pinakes MARKETS as differentiators and that the 2026-08-11 audit put squarely in the REPLACE column. **(1) The 'Datalog engine' is a 530-LOC naive-fixpoint evaluator over 10 hand-authored rules** \u2014 `materialize()` re-derives every rule's full extension each round (not semi-naive), has no negation (a SECOND evaluator, `evaluate_schema_violations`, exists for that), no stratification, and arity hard-capped at 2. Its own docs record **3 of the 10 temporal rules failing to terminate at corpus scale**. **Souffl\u00e9 is already an emit target with an equivalence test** (`datalog/equivalence.py` diffs swipl vs souffle tuple sets), so this is *'run what you already generate'* rather than a port \u2014 and it fixes the non-termination. **(2) Entity resolution is O(k\u00b2)** \u2014 `merge.py:214` runs `difflib.SequenceMatcher` inside `(label, lang)` blocks, and the repo's own `schema/CLAUDE.md` records **~64M comparisons on one Lexibank ISO block**.",
+  "parked": false,
+  "dependsOn": [],
+  "touches": [
+    "engine/src/pinakes_engine/datalog/",
+    "engine/src/pinakes_engine/schema/"
+  ],
+  "iters": 8,
+  "warmup": [
+    "engine/src/pinakes_engine/datalog/materialize.py",
+    "engine/src/pinakes_engine/schema/merge.py"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Run the Souffl\u00e9 program you already emit",
+      "description": "Execution moves to Souffl\u00e9; the Python evaluator stays as the CI fallback.",
+      "acceptanceCriteria": [
+        "Materialization runs the emitted `.dl` through **Souffl\u00e9** (1,142\u2605 UPL-1.0, 2026-07-13) and the existing `equivalence.py` test proves the tuple sets match.",
+        "The 3 documented non-terminating temporal rules TERMINATE, with runtime reported \u2014 that is this story's proof, not the tuple match.",
+        "`materialize.py` is KEPT as the offline fallback exactly as it is today, so a box without Souffl\u00e9 still runs CI (the reversal path is the status quo).",
+        "Recursion and negation become expressible; the second evaluator (`evaluate_schema_violations`) is either folded in or its continued separate existence is justified in writing."
+      ],
+      "passes": false,
+      "notes": "The equivalence test already exists \u2014 that is what makes this cheap. Do not rewrite the emitter."
+    },
+    {
+      "id": "US-2",
+      "title": "Adopt splink for entity resolution",
+      "description": "Blocking + union-find + probabilistic scoring replaces the O(k\u00b2) scan.",
+      "acceptanceCriteria": [
+        "**splink** (2,333\u2605 MIT, UK Ministry of Justice, DuckDB-native \u2014 fits the existing DuckDB dependency) replaces `_link_by_fuzzy_name`'s pairwise `SequenceMatcher`.",
+        "The ~64M-comparison Lexibank case is re-run and the comparison count and wall-clock are reported before/after.",
+        "The domain-tuned thresholds are PRESERVED as splink comparison levels \u2014 `lexicon_reconcile.py` raises the fuzzy floor to 0.93 because *'German Empire\u2192Roman Empire fuzzes 0.88'*, and that knowledge must not be lost in the migration.",
+        "The REMOTE OpenRefine reconciliation against `wikidata.reconci.link` is untouched \u2014 it is already adoption, not reinvention.",
+        "\u26a0\ufe0f Do NOT reach for `dedupe` despite its higher star count \u2014 verified **last pushed 2025-07-29**, over a year stale.",
+        "The offline cascade is kept behind the same interface for one release, so a bad match rate is revertible."
+      ],
+      "passes": false,
+      "notes": "The thresholds are the asset. Porting the mechanism and losing the tuning would be a net regression."
+    }
+  ]
+}
