@@ -1,8 +1,9 @@
 {
   "project": "pinakes",
+  "category": "feature",
   "branchName": "chief/102-first-doi-dataset-snapshot",
   "baseBranch": "main",
-  "description": "Phase A production-hardening (ROADMAP.md Phase A; prd-pinakes-deep-history-roadmap.md §16, §12.4). chief/91 built the deterministic corpus-packaging + private release-asset path; this tasklist takes the FIRST real, versioned, citable DOI snapshot off the POPULATED corpus — a minted DOI, a dataset landing page with the citation/BibTeX, and the coverage the snapshot represents. Producer side of the citable-atlas promise. Scope: the release/packaging tooling (building on 91's script + docs/artifact-versioning.md), the citation/DOI surfaces (services/api living-dataset / _release routers), and docs. Depends on 91 (merged) and the §15 corpus (shipped), so no in-repo dependsOn.",
+  "description": "Phase A production-hardening (ROADMAP.md Phase A; prd-pinakes-deep-history-roadmap.md \u00a716, \u00a712.4). chief/91 built the deterministic corpus-packaging + private release-asset path; this tasklist takes the FIRST real, versioned, citable DOI snapshot off the POPULATED corpus \u2014 a minted DOI, a dataset landing page with the citation/BibTeX, and the coverage the snapshot represents. Producer side of the citable-atlas promise. Scope: the release/packaging tooling (building on 91's script + docs/artifact-versioning.md), the citation/DOI surfaces (services/api living-dataset / _release routers), and docs. Depends on 91 (merged) and the \u00a715 corpus (shipped), so no in-repo dependsOn.",
   "parked": false,
   "dependsOn": [],
   "touches": [

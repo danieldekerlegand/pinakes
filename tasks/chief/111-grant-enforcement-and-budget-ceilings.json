@@ -1,8 +1,9 @@
 {
   "project": "pinakes",
+  "category": "feature",
   "branchName": "chief/111-grant-enforcement-and-budget-ceilings",
   "baseBranch": "main",
-  "description": "Phase C fabric completion (ROADMAP.md Phase C; docs/capability-bus.md §\"Not yet built\", KCB §5 / KFT §7). Today `auth.grants_required` fixes the grant SHAPE only, and `cost.meter`/`est_units` publish the finetune figure a caller gates on but no ceiling is checked. Enforce grants pinakes-side: verify/rotate presented grants and gate `finetune` admission on a `budget_units` ceiling. CROSS-REPO: issuance/rotation/spend-ceiling policy lives in the orchestrator's workforce governance (the grant ISSUER), so this depends on agora providing that issuer — encoded as the `agora:67-kcb-grant-issuer` dep (the agreed stem for the issuer tasklist being authored in agora; keep the dep even while that file is not yet on disk there); pinakes implements the ENFORCEMENT seam against koine's KCB contract. Scope: the capability-bus auth/admission path (services/api capability_bus.py, the api-auth successor) + the manifest + tests. Serializes with other Phase-C rows on `capability-bus`.",
+  "description": "Phase C fabric completion (ROADMAP.md Phase C; docs/capability-bus.md \u00a7\"Not yet built\", KCB \u00a75 / KFT \u00a77). Today `auth.grants_required` fixes the grant SHAPE only, and `cost.meter`/`est_units` publish the finetune figure a caller gates on but no ceiling is checked. Enforce grants pinakes-side: verify/rotate presented grants and gate `finetune` admission on a `budget_units` ceiling. CROSS-REPO: issuance/rotation/spend-ceiling policy lives in the orchestrator's workforce governance (the grant ISSUER), so this depends on agora providing that issuer \u2014 encoded as the `agora:67-kcb-grant-issuer` dep (the agreed stem for the issuer tasklist being authored in agora; keep the dep even while that file is not yet on disk there); pinakes implements the ENFORCEMENT seam against koine's KCB contract. Scope: the capability-bus auth/admission path (services/api capability_bus.py, the api-auth successor) + the manifest + tests. Serializes with other Phase-C rows on `capability-bus`.",
   "parked": false,
   "dependsOn": [
     "agora:67-kcb-grant-issuer"
@@ -21,7 +22,7 @@
       "title": "Enforce presented grants at the capability-bus surface",
       "description": "Verify (and honor rotation of) grants presented against grants_required capabilities, rejecting missing/invalid/expired grants, against grants issued by the orchestrator's grant issuer.",
       "acceptanceCriteria": [
-        "The capability-bus surface verifies a presented grant against the `auth.grants_required` shape and the orchestrator-issued grant (issuer/rotation honored per KCB §5), rejecting missing/expired/invalid grants with the graded error the contract specifies — implemented against koine's KCB contract, not a re-spec.",
+        "The capability-bus surface verifies a presented grant against the `auth.grants_required` shape and the orchestrator-issued grant (issuer/rotation honored per KCB \u00a75), rejecting missing/expired/invalid grants with the graded error the contract specifies \u2014 implemented against koine's KCB contract, not a re-spec.",
         "The applicable gates pass: `uv run --all-packages pytest services/api/tests`, `uv run --all-packages ruff check services/api`, `uv run --directory services/api --all-packages mypy`.",
         "`bun run check:contracts` passes if the capability-manifest/contract source changed."
       ],
@@ -31,7 +32,7 @@
     {
       "id": "US-2",
       "title": "Grant-gated budget_units ceiling for finetune",
-      "description": "Gate finetune admission on a budget_units ceiling drawn from the grant, so cost.meter/est_units is not just published but enforced (KFT §7).",
+      "description": "Gate finetune admission on a budget_units ceiling drawn from the grant, so cost.meter/est_units is not just published but enforced (KFT \u00a77).",
       "acceptanceCriteria": [
         "Finetune admission checks the request's est_units against the grant's budget_units ceiling and refuses over-ceiling requests, where today only cost.meter/est_units publishes the figure.",
         "A test asserts an over-ceiling finetune request is refused and an under-ceiling one admitted, using a fixture grant (no live orchestrator required for the test).",

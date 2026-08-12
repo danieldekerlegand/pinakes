@@ -1,8 +1,9 @@
 {
   "project": "pinakes",
+  "category": "fix",
   "branchName": "chief/103-rotate-keys-purge-env-history",
   "baseBranch": "main",
-  "description": "Phase A security tail (ROADMAP.md Phase A; prd-pinakes-deep-history-roadmap.md §16). The `security-hardening` pass closed everything else; this is the one open key-custody item: rotate the exposed Gemini / Google-Translate keys and purge `.env` from git history + force-push. PARKED — the roadmap flags this HUMAN-ONLY: rotating live credentials and rewriting/force-pushing shared git history are not autonomous-agent work. Kept as a tracked, runnable-by-a-human tasklist so the item is not lost; it does not block the other Phase-A rows. Scope: credential rotation (out-of-band), git history rewrite, and the ignore/secret-handling hardening left in-tree.",
+  "description": "Phase A security tail (ROADMAP.md Phase A; prd-pinakes-deep-history-roadmap.md \u00a716). The `security-hardening` pass closed everything else; this is the one open key-custody item: rotate the exposed Gemini / Google-Translate keys and purge `.env` from git history + force-push. PARKED \u2014 the roadmap flags this HUMAN-ONLY: rotating live credentials and rewriting/force-pushing shared git history are not autonomous-agent work. Kept as a tracked, runnable-by-a-human tasklist so the item is not lost; it does not block the other Phase-A rows. Scope: credential rotation (out-of-band), git history rewrite, and the ignore/secret-handling hardening left in-tree.",
   "parked": true,
   "dependsOn": [],
   "touches": [
@@ -18,7 +19,7 @@
       "description": "Rotate the exposed Gemini/Google-Translate API keys out of band and confirm the old keys are revoked.",
       "acceptanceCriteria": [
         "The exposed Gemini and Google-Translate keys are rotated in the provider console and the old keys are confirmed revoked (verified out-of-band, recorded in the security note).",
-        "The new keys are supplied only via environment/secret store — never committed — and the app reads them from the environment as before.",
+        "The new keys are supplied only via environment/secret store \u2014 never committed \u2014 and the app reads them from the environment as before.",
         "A short SECURITY/rotation note records that rotation happened, when, and by whom (no secret values in the note)."
       ],
       "passes": false,

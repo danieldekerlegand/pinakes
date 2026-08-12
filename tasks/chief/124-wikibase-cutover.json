@@ -1,8 +1,9 @@
 {
   "project": "pinakes",
+  "category": "replace",
   "branchName": "chief/124-wikibase-cutover",
   "baseBranch": "main",
-  "description": "D4(b) step 5 of 5 — the cutover: Wikibase becomes canonical and TSV becomes import/export only (docs/DECISION-D4-CLDF-AND-WIKIBASE.md §5). This flips the repo's oldest and most load-bearing invariant. CLAUDE.md currently states, first in its 'Invariants an agent must not violate' list: 'TSV-first. data/source/lexicons/*.tsv is the corpus source of truth; the graph and every export derive from it.' After this tasklist that sentence is false, and leaving it in place would be worse than the migration being incomplete — every agent that reads CLAUDE.md would keep writing to the wrong authority. So the documentation change is not the epilogue of this tasklist, it is one of its deliverables. What changes: writes go to the store (statements with references and ranks), the TSV corpus becomes an IMPORT format (a bulk-load path, 122) and an EXPORT format (a citable, diffable, DOI-snapshottable projection — chief/91 and 102's packaging keeps working, now fed from the store), and the derived indexes rebuild from the store (123). What does NOT change: the `cs:` id-space stays stable and QID-anchored, provenance still rides on every claim, and the 117 licence tier is still stamped at admission and still gates every export. A rollback path is mandatory and must be tested BEFORE the flip, not designed after it — the corpus is the product, and an irreversible cutover on a four-service stack is not an acceptable risk. Scope: the write path, the TSV export projection, the release/DOI path where it reads the corpus, and every doc that states the authority (CLAUDE.md, ROADMAP.md, docs/canonical-schema.md, docs/ATTRIBUTION.md).",
+  "description": "D4(b) step 5 of 5 \u2014 the cutover: Wikibase becomes canonical and TSV becomes import/export only (docs/DECISION-D4-CLDF-AND-WIKIBASE.md \u00a75). This flips the repo's oldest and most load-bearing invariant. CLAUDE.md currently states, first in its 'Invariants an agent must not violate' list: 'TSV-first. data/source/lexicons/*.tsv is the corpus source of truth; the graph and every export derive from it.' After this tasklist that sentence is false, and leaving it in place would be worse than the migration being incomplete \u2014 every agent that reads CLAUDE.md would keep writing to the wrong authority. So the documentation change is not the epilogue of this tasklist, it is one of its deliverables. What changes: writes go to the store (statements with references and ranks), the TSV corpus becomes an IMPORT format (a bulk-load path, 122) and an EXPORT format (a citable, diffable, DOI-snapshottable projection \u2014 chief/91 and 102's packaging keeps working, now fed from the store), and the derived indexes rebuild from the store (123). What does NOT change: the `cs:` id-space stays stable and QID-anchored, provenance still rides on every claim, and the 117 licence tier is still stamped at admission and still gates every export. A rollback path is mandatory and must be tested BEFORE the flip, not designed after it \u2014 the corpus is the product, and an irreversible cutover on a four-service stack is not an acceptable risk. Scope: the write path, the TSV export projection, the release/DOI path where it reads the corpus, and every doc that states the authority (CLAUDE.md, ROADMAP.md, docs/canonical-schema.md, docs/ATTRIBUTION.md).",
   "parked": false,
   "dependsOn": [
     "123-derived-read-index-rebuild"
@@ -22,9 +23,9 @@
       "title": "Prove the rollback before flipping the authority",
       "description": "Establish and exercise the escape hatch first: a full, verified return to TSV-as-source-of-truth from a store that has taken writes, so the cutover is reversible in practice and not just on paper.",
       "acceptanceCriteria": [
-        "A rollback procedure is documented AND executed in a rehearsal: writes are made in the store, the corpus is exported back to TSV, the pre-migration build path is run from those TSVs, and the resulting corpus is verified equivalent — with any information that cannot survive the round trip (e.g. statement-level qualifiers or ranks the TSV schema cannot express) enumerated explicitly as the cost of rolling back.",
+        "A rollback procedure is documented AND executed in a rehearsal: writes are made in the store, the corpus is exported back to TSV, the pre-migration build path is run from those TSVs, and the resulting corpus is verified equivalent \u2014 with any information that cannot survive the round trip (e.g. statement-level qualifiers or ranks the TSV schema cannot express) enumerated explicitly as the cost of rolling back.",
         "The rehearsal is repeatable, not a one-off: the export-to-TSV step is a committed, tested command, and a test asserts store -> TSV -> store round-trips a fixture slice without loss of csid identity, provenance, or licence tier.",
-        "The decision record states the point of no return — what, if anything, becomes irreversible after the flip, and how long the rollback stays supported."
+        "The decision record states the point of no return \u2014 what, if anything, becomes irreversible after the flip, and how long the rollback stays supported."
       ],
       "passes": false,
       "notes": ""
@@ -34,9 +35,9 @@
       "title": "Writes go to the store; TSV becomes import/export only",
       "description": "Move the write path to Wikibase and turn the TSV corpus into a generated projection, keeping the citable-release machinery working off it.",
       "acceptanceCriteria": [
-        "Corpus writes (acquisition write-back, curation, reconciliation output) land as statements in the store with their references and ranks, and no tool in the repo writes data/source/lexicons/*.tsv as an authority any more — the TSVs are regenerated from the store by a documented command and a test asserts a hand-edit to a generated TSV is detected rather than absorbed.",
+        "Corpus writes (acquisition write-back, curation, reconciliation output) land as statements in the store with their references and ranks, and no tool in the repo writes data/source/lexicons/*.tsv as an authority any more \u2014 the TSVs are regenerated from the store by a documented command and a test asserts a hand-edit to a generated TSV is detected rather than absorbed.",
         "The export projection is deterministic and diffable, so the TSV corpus stays reviewable in git and the convergence-QA attribution + dedup-ratchet gates keep working against it (re-baselined only where the change legitimately moves counts).",
-        "The chief/91 packaging and the chief/102 DOI-snapshot path build from the store-derived corpus unchanged in output shape — a snapshot taken after the cutover is comparable to one taken before, and the licence partition in the release manifest still reconciles with the 117 tiers.",
+        "The chief/91 packaging and the chief/102 DOI-snapshot path build from the store-derived corpus unchanged in output shape \u2014 a snapshot taken after the cutover is comparable to one taken before, and the licence partition in the release manifest still reconciles with the 117 tiers.",
         "`.chief/verify.sh` passes and both Python suites plus the TS suite are green."
       ],
       "passes": false,
@@ -45,9 +46,9 @@
     {
       "id": "US-3",
       "title": "Every document that states the authority now states the new one",
-      "description": "Retire the TSV-first invariant everywhere it is asserted, and replace it with the store-canonical rule — including the agent-facing files that shape how future work is done.",
+      "description": "Retire the TSV-first invariant everywhere it is asserted, and replace it with the store-canonical rule \u2014 including the agent-facing files that shape how future work is done.",
       "acceptanceCriteria": [
-        "CLAUDE.md's 'TSV-first' invariant is replaced with the store-canonical rule (Wikibase canonical; TSV import/export only; Neo4j/DuckDB derived read-indexes), and the Layout table's authority column is corrected — the file no longer tells an agent to treat data/source/lexicons/ as the source of truth.",
+        "CLAUDE.md's 'TSV-first' invariant is replaced with the store-canonical rule (Wikibase canonical; TSV import/export only; Neo4j/DuckDB derived read-indexes), and the Layout table's authority column is corrected \u2014 the file no longer tells an agent to treat data/source/lexicons/ as the source of truth.",
         "ROADMAP.md's Current State and Vision sections, docs/canonical-schema.md, docs/ATTRIBUTION.md and docs/engine-integration.md are updated consistently; a repo-wide search for the phrase 'source of truth' applied to the TSV corpus returns no stale assertion.",
         "docs/DECISION-D4-CLDF-AND-WIKIBASE.md is updated to record the cutover as executed, with the date, the store version, and the corpus scale at cutover; the Phase-D ROADMAP rows are marked shipped."
       ],

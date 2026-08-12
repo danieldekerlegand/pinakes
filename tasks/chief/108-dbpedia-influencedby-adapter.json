@@ -1,8 +1,9 @@
 {
   "project": "pinakes",
+  "category": "feature",
   "branchName": "chief/108-dbpedia-influencedby-adapter",
   "baseBranch": "main",
-  "description": "Phase B source-adapter expansion (ROADMAP.md Phase B; engine/docs/sources-genetic.md §DBpedia + Decision §2). Add a DBpedia `dbo:influencedBy` adapter for broader (noisier) INFLUENCED_BY / derivation coverage than the curated Wikidata statements the existing wikidata-sparql adapter yields. License-aware: DBpedia is CC-BY-SA 3.0, so the licence string must travel with each record as the Getty/Pleiades adapters do (contrast the CC0 Wikidata path). Ingest via SPARQL endpoint or RDF dump on top of the reusable dump adapter (106). Scope: the engine acquire layer + a DBpedia source spec mapping dbo:influencedBy -> INFLUENCED_BY + fixtures. Serializes with the other Phase-B adapters on the `acquire` domain.",
+  "description": "Phase B source-adapter expansion (ROADMAP.md Phase B; engine/docs/sources-genetic.md \u00a7DBpedia + Decision \u00a72). Add a DBpedia `dbo:influencedBy` adapter for broader (noisier) INFLUENCED_BY / derivation coverage than the curated Wikidata statements the existing wikidata-sparql adapter yields. License-aware: DBpedia is CC-BY-SA 3.0, so the licence string must travel with each record as the Getty/Pleiades adapters do (contrast the CC0 Wikidata path). Ingest via SPARQL endpoint or RDF dump on top of the reusable dump adapter (106). Scope: the engine acquire layer + a DBpedia source spec mapping dbo:influencedBy -> INFLUENCED_BY + fixtures. Serializes with the other Phase-B adapters on the `acquire` domain.",
   "parked": false,
   "dependsOn": [
     "106-reusable-cldf-dump-adapter"

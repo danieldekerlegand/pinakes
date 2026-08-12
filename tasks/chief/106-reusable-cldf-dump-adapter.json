@@ -1,8 +1,9 @@
 {
   "project": "pinakes",
+  "category": "unblock",
   "branchName": "chief/106-reusable-cldf-dump-adapter",
   "baseBranch": "main",
-  "description": "Phase B source-adapter expansion (ROADMAP.md Phase B; engine/docs/sources-linguistic.md Decision §2). A reusable CLDF dump adapter (`source.type: dump`) is the shared plumbing every CLDF source below (Glottolog 107, WALS/PHOIBLE-shaped, Lexibank) rides on. Model it on the existing Getty/Pleiades dump adapters (engine/src/pinakes_engine/acquire/{getty,pleiades,wikidata_dump_adapter}.py, wired through acquire/factory.py) so a new CLDF source is a category/job spec, not new adapter code. Licence-aware: CLDF sources are CC-BY / CC-BY-SA, so the licence string must travel with each record as Getty/Pleiades already do. Scope: the engine acquire layer + a job/category spec + hermetic fixtures. Head of the Phase-B chain; depends on nothing.",
+  "description": "Phase B source-adapter expansion (ROADMAP.md Phase B; engine/docs/sources-linguistic.md Decision \u00a72). A reusable CLDF dump adapter (`source.type: dump`) is the shared plumbing every CLDF source below (Glottolog 107, WALS/PHOIBLE-shaped, Lexibank) rides on. Model it on the existing Getty/Pleiades dump adapters (engine/src/pinakes_engine/acquire/{getty,pleiades,wikidata_dump_adapter}.py, wired through acquire/factory.py) so a new CLDF source is a category/job spec, not new adapter code. Licence-aware: CLDF sources are CC-BY / CC-BY-SA, so the licence string must travel with each record as Getty/Pleiades already do. Scope: the engine acquire layer + a job/category spec + hermetic fixtures. Head of the Phase-B chain; depends on nothing.",
   "parked": false,
   "dependsOn": [],
   "touches": [

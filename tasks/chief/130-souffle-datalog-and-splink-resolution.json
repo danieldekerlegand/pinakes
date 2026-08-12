@@ -1,5 +1,6 @@
 {
   "project": "pinakes",
+  "category": "replace",
   "branchName": "chief/130-souffle-datalog-and-splink-resolution",
   "description": "Replace the two subsystems pinakes MARKETS as differentiators and that the 2026-08-11 audit put squarely in the REPLACE column. **(1) The 'Datalog engine' is a 530-LOC naive-fixpoint evaluator over 10 hand-authored rules** \u2014 `materialize()` re-derives every rule's full extension each round (not semi-naive), has no negation (a SECOND evaluator, `evaluate_schema_violations`, exists for that), no stratification, and arity hard-capped at 2. Its own docs record **3 of the 10 temporal rules failing to terminate at corpus scale**. **Souffl\u00e9 is already an emit target with an equivalence test** (`datalog/equivalence.py` diffs swipl vs souffle tuple sets), so this is *'run what you already generate'* rather than a port \u2014 and it fixes the non-termination. **(2) Entity resolution is O(k\u00b2)** \u2014 `merge.py:214` runs `difflib.SequenceMatcher` inside `(label, lang)` blocks, and the repo's own `schema/CLAUDE.md` records **~64M comparisons on one Lexibank ISO block**.",
   "parked": false,

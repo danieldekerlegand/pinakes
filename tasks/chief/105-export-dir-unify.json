@@ -1,8 +1,9 @@
 {
   "project": "pinakes",
+  "category": "fix",
   "branchName": "chief/105-export-dir-unify",
   "baseBranch": "main",
-  "description": "Phase A production-hardening (ROADMAP.md Phase A; docs/UNIFIED-PROJECT-PLAN.md §4). The blanket culture-scrape->pinakes_engine rename left the engine's corpus export under the TRACKED path `export/pinakes_engine/` instead of the intended gitignored `build/corpus`. The engine CLAUDE.md documents the live export as `../build/corpus`; align reality to that so corpus artifacts are regenerable and not accidentally tracked. Scope: the engine export path (engine/acquire/writer.py + the categories/jobs relative paths resolved from the CLI cwd), .gitignore, the packaging/publish tooling (chief/91) that reads build/corpus, and docs. Serializes with corpus work on the `corpus` domain.",
+  "description": "Phase A production-hardening (ROADMAP.md Phase A; docs/UNIFIED-PROJECT-PLAN.md \u00a74). The blanket culture-scrape->pinakes_engine rename left the engine's corpus export under the TRACKED path `export/pinakes_engine/` instead of the intended gitignored `build/corpus`. The engine CLAUDE.md documents the live export as `../build/corpus`; align reality to that so corpus artifacts are regenerable and not accidentally tracked. Scope: the engine export path (engine/acquire/writer.py + the categories/jobs relative paths resolved from the CLI cwd), .gitignore, the packaging/publish tooling (chief/91) that reads build/corpus, and docs. Serializes with corpus work on the `corpus` domain.",
   "parked": false,
   "dependsOn": [],
   "touches": [
@@ -32,7 +33,7 @@
       "description": "Confirm a fresh export regenerates into build/corpus and the deterministic packaging still produces a stable tarball from it.",
       "acceptanceCriteria": [
         "A documented export run regenerates build/corpus, and the 91 packaging script tars it to a stable sha256 from the new path (the export -> package -> sha256 loop works end to end).",
-        "docs (UNIFIED-PROJECT-PLAN §4 / artifact-versioning.md) reflect build/corpus as the single export location.",
+        "docs (UNIFIED-PROJECT-PLAN \u00a74 / artifact-versioning.md) reflect build/corpus as the single export location.",
         "`.chief/verify.sh` passes; any JSON touched parses."
       ],
       "passes": false,

@@ -1,8 +1,9 @@
 {
   "project": "pinakes",
+  "category": "fix",
   "branchName": "chief/101-source-real-media-assets",
   "baseBranch": "main",
-  "description": "Phase A production-hardening (ROADMAP.md Phase A; prd-pinakes-deep-history-roadmap.md §14.2/§14.3, §16). Several Phase-14 features shipped with SPECULATIVE FALLBACKS: IPA / music-pronunciation audio and glTF/3D artifact models are placeholders. This tasklist sources real, license-clean assets for the domains that have them, wires an asset manifest + provenance/licence record, and makes the UI prefer the real asset while keeping the fallback for the long tail. Scope: the asset manifest + acquisition path (engine/acquire side where an adapter fetches assets), web/ media/3D viewers, and docs. Serializes with other client work on the `client` domain.",
+  "description": "Phase A production-hardening (ROADMAP.md Phase A; prd-pinakes-deep-history-roadmap.md \u00a714.2/\u00a714.3, \u00a716). Several Phase-14 features shipped with SPECULATIVE FALLBACKS: IPA / music-pronunciation audio and glTF/3D artifact models are placeholders. This tasklist sources real, license-clean assets for the domains that have them, wires an asset manifest + provenance/licence record, and makes the UI prefer the real asset while keeping the fallback for the long tail. Scope: the asset manifest + acquisition path (engine/acquire side where an adapter fetches assets), web/ media/3D viewers, and docs. Serializes with other client work on the `client` domain.",
   "parked": false,
   "dependsOn": [],
   "touches": [

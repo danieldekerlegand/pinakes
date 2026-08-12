@@ -1,8 +1,9 @@
 {
   "project": "pinakes",
+  "category": "feature",
   "branchName": "chief/109-language-range-polygon-source",
   "baseBranch": "main",
-  "description": "Phase B source-adapter expansion (ROADMAP.md Phase B; ROADMAP §15 data gap). `language-range-polygons` is the ONE Phase-15 target Wikidata cannot supply — it landed at 133/200 because Wikidata carries no inline range polygons, honestly flagged in /api/data-quality. Add a NON-Wikidata source of historical/modern language-range GeoJSON (Glottolog/Ethnologue-style boundaries) to close the gap, ingested via the reusable dump adapter (106) and reconciled onto language nodes by glottocode/ISO. License-aware per source. Scope: the engine acquire layer + a range-polygon source spec + the map/geometry surface (services/api map_layers / data_quality coverage) + fixtures.",
+  "description": "Phase B source-adapter expansion (ROADMAP.md Phase B; ROADMAP \u00a715 data gap). `language-range-polygons` is the ONE Phase-15 target Wikidata cannot supply \u2014 it landed at 133/200 because Wikidata carries no inline range polygons, honestly flagged in /api/data-quality. Add a NON-Wikidata source of historical/modern language-range GeoJSON (Glottolog/Ethnologue-style boundaries) to close the gap, ingested via the reusable dump adapter (106) and reconciled onto language nodes by glottocode/ISO. License-aware per source. Scope: the engine acquire layer + a range-polygon source spec + the map/geometry surface (services/api map_layers / data_quality coverage) + fixtures.",
   "parked": false,
   "dependsOn": [
     "106-reusable-cldf-dump-adapter"

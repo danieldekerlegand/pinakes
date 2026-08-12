@@ -1,8 +1,9 @@
 {
   "project": "pinakes",
+  "category": "feature",
   "branchName": "chief/110-kgp-subscribe-fetch-verbs",
   "baseBranch": "main",
-  "description": "Phase C fabric completion (ROADMAP.md Phase C; docs/capability-bus.md §\"Not yet built\"). Today the knowledge ports surface only `describe` (the manifest) and `invoke` (the built endpoints); `subscribe` exists only for the finetune telemetry stream. Add the KGP `subscribe` / `fetch` verbs for the knowledge ports so a fabric peer can pull a knowledge slice (`fetch`) and receive KGP §6 delta subscriptions (`subscribe`) as the grounding-pack work needs. Implement against koine's KGP contract — do not re-specify it. Scope: the capability-bus / KCB surface (services/api/src/pinakes/routers/capability_bus.py, kcb/mcp.py) + the manifest (contracts/capability-manifest) + tests. Serializes with the other Phase-C rows on the `capability-bus` domain.",
+  "description": "Phase C fabric completion (ROADMAP.md Phase C; docs/capability-bus.md \u00a7\"Not yet built\"). Today the knowledge ports surface only `describe` (the manifest) and `invoke` (the built endpoints); `subscribe` exists only for the finetune telemetry stream. Add the KGP `subscribe` / `fetch` verbs for the knowledge ports so a fabric peer can pull a knowledge slice (`fetch`) and receive KGP \u00a76 delta subscriptions (`subscribe`) as the grounding-pack work needs. Implement against koine's KGP contract \u2014 do not re-specify it. Scope: the capability-bus / KCB surface (services/api/src/pinakes/routers/capability_bus.py, kcb/mcp.py) + the manifest (contracts/capability-manifest) + tests. Serializes with the other Phase-C rows on the `capability-bus` domain.",
   "parked": false,
   "dependsOn": [],
   "touches": [
@@ -29,9 +30,9 @@
     {
       "id": "US-2",
       "title": "KGP subscribe (delta subscriptions) for the knowledge ports",
-      "description": "Add the KGP subscribe verb (KGP §6 delta subscriptions) to the knowledge ports, generalizing beyond the finetune-only telemetry subscribe that exists today.",
+      "description": "Add the KGP subscribe verb (KGP \u00a76 delta subscriptions) to the knowledge ports, generalizing beyond the finetune-only telemetry subscribe that exists today.",
       "acceptanceCriteria": [
-        "The knowledge ports expose a KGP `subscribe` verb delivering KGP §6 deltas, distinct from the existing finetune telemetry stream; the manifest advertises it and it is exercised by a test.",
+        "The knowledge ports expose a KGP `subscribe` verb delivering KGP \u00a76 deltas, distinct from the existing finetune telemetry stream; the manifest advertises it and it is exercised by a test.",
         "A test asserts a subscriber receives deltas for a changed knowledge slice (not just a static describe), and the MCP tool surface (kcb/mcp.py) reflects the new verbs.",
         "`.chief/verify.sh` passes; the capability-manifest JSON parses and `bun run check:registry-mirror` passes if a registry-shaped file changed."
       ],
