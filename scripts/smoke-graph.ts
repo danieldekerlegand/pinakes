@@ -5,11 +5,17 @@
  * first-party `/api/graph/*` routes and asserts they return *real* (non-empty)
  * data — proving the app actually talks to the live stack rather than a mock:
  *
- *   GET /api/graph/status              — both backends reachable
- *   GET /api/graph/search?q=…          — full-text search returns hits (sidecar)
- *   GET /api/graph/metrics             — graph-level metrics are non-zero (sidecar)
- *   GET /api/graph/node/:id            — a real node resolves by csid (Neo4j)
- *   GET /api/graph/neighborhood/:id    — its neighborhood has nodes (Neo4j)
+ *   GET  /api/graph/status             — both backends reachable
+ *   GET  /api/graph/search?q=…         — full-text search returns hits (sidecar)
+ *   GET  /api/graph/metrics            — graph-level metrics are non-zero (sidecar)
+ *   POST /api/graph/cypher             — every CORE_DOMAIN label is non-empty (Neo4j)
+ *   GET  /api/graph/node/:id           — a real node resolves by csid (Neo4j)
+ *   GET  /api/graph/neighborhood/:id   — its neighborhood has nodes AND edges (Neo4j)
+ *
+ * The domain leg is what makes this a *populated*-graph gate rather than a
+ * reachability one (pinakes:100 US-1): a graph that is up but empty — or holding
+ * the 9-node `tests/fixtures/explorer-corpus` fixture the compose file defaults
+ * to — passes status/metrics/search and fails here, which is the whole point.
  *
  * It **degrades gracefully**: when the pinakes server, the sidecar, or Neo4j
  * is absent it prints a clear "stack down" message and exits 0 rather than
@@ -59,6 +65,16 @@ interface MetricsResponse {
   edge_count: number;
 }
 
+/**
+ * `POST /api/graph/cypher` — the read-only research console. Rows are positional
+ * and every cell arrives JSON-stringified (a Neo4j integer comes back as
+ * `"341"`, not `341`), so callers coerce rather than trusting the type.
+ */
+interface CypherResponse {
+  columns: string[];
+  rows: unknown[][];
+}
+
 /** Base URL of the running pinakes server (not the sidecar directly). */
 const BASE_URL = (
   process.env.SMOKE_GRAPH_URL ?? `http://localhost:${process.env.PORT ?? "3050"}`
@@ -70,6 +86,22 @@ const REQUEST_TIMEOUT_MS = Number(process.env.SMOKE_GRAPH_TIMEOUT_MS) || 15000;
 /** Search terms tried in order until one returns hits (corpus-agnostic). */
 const SEARCH_TERMS = ["a", "e", "la", "an", "the"];
 
+/**
+ * The core corpus domains a *populated* graph must answer for, each named by the
+ * Neo4j label the canonical export loads it under (`docs/canonical-schema.md`;
+ * civilizations share the `:Culture` label with the other culture lexicons).
+ * Zero nodes for any of these means the graph is reachable but not populated —
+ * the failure mode the rest of the checks cannot see.
+ */
+const CORE_DOMAINS: readonly { readonly name: string; readonly label: string }[] =
+  [
+    { name: "civilizations", label: "Culture" },
+    { name: "sites", label: "Place" },
+    { name: "deities", label: "Deity" },
+    { name: "writing systems", label: "WritingSystem" },
+    { name: "languages", label: "Language" },
+  ];
+
 /** Result of one HTTP GET: transport-level failure is captured, never thrown. */
 interface FetchResult<T> {
   /** true when a JSON body was received (any HTTP status). */
@@ -79,14 +111,18 @@ interface FetchResult<T> {
   error?: string;
 }
 
-/** GET a JSON endpoint, returning `reached:false` on any transport failure. */
-async function getJson<T>(path: string): Promise<FetchResult<T>> {
+/** Request a JSON endpoint, returning `reached:false` on any transport failure. */
+async function requestJson<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<FetchResult<T>> {
   const url = `${BASE_URL}${path}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
     const res = await fetch(url, {
-      headers: { Accept: "application/json" },
+      ...init,
+      headers: { Accept: "application/json", ...init.headers },
       signal: controller.signal,
     });
     let body: T | null = null;
@@ -106,6 +142,20 @@ async function getJson<T>(path: string): Promise<FetchResult<T>> {
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** GET a JSON endpoint. */
+function getJson<T>(path: string): Promise<FetchResult<T>> {
+  return requestJson<T>(path);
+}
+
+/** Run a read-only Cypher query through `POST /api/graph/cypher`. */
+function cypher(query: string): Promise<FetchResult<CypherResponse>> {
+  return requestJson<CypherResponse>("/api/graph/cypher", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query }),
+  });
 }
 
 type CheckState = "pass" | "fail" | "skip";
@@ -130,15 +180,84 @@ function record(
 }
 
 /**
- * Find a real node csid to probe node/neighborhood with. Prefers a search hit
- * (exercises the sidecar path); falls back to the Neo4j-backed `/overview`
- * snapshot so the node checks can still run when the sidecar is down but Neo4j
- * is up. Returns null when neither yields a node.
+ * Record one check per {@link CORE_DOMAINS} entry: is that label non-empty in
+ * the live graph? One label-count query answers all of them, so an empty graph
+ * fails every domain at once with the counts printed.
  */
+async function checkCoreDomains(
+  checks: Check[],
+  neo4jUp: boolean,
+): Promise<void> {
+  if (!neo4jUp) {
+    for (const domain of CORE_DOMAINS) {
+      record(checks, `domain: ${domain.name}`, "skip", "Neo4j down");
+    }
+    return;
+  }
+
+  const labels = CORE_DOMAINS.map((d) => `"${d.label}"`).join(", ");
+  const r = await cypher(
+    `MATCH (n) UNWIND labels(n) AS label WITH label, count(*) AS total ` +
+      `WHERE label IN [${labels}] RETURN label, total`,
+  );
+
+  if (!r.reached || r.status !== 200 || !r.body?.rows) {
+    for (const domain of CORE_DOMAINS) {
+      record(
+        checks,
+        `domain: ${domain.name}`,
+        "fail",
+        `label-count query failed (status=${r.status})`,
+      );
+    }
+    return;
+  }
+
+  // Rows are positional and cells arrive stringified; index them by label.
+  const labelIdx = r.body.columns.indexOf("label");
+  const totalIdx = r.body.columns.indexOf("total");
+  const counts = new Map<string, number>();
+  for (const row of r.body.rows) {
+    counts.set(String(row[labelIdx]), Number(row[totalIdx]) || 0);
+  }
+
+  for (const domain of CORE_DOMAINS) {
+    const total = counts.get(domain.label) ?? 0;
+    record(
+      checks,
+      `domain: ${domain.name}`,
+      total > 0 ? "pass" : "fail",
+      `:${domain.label} → ${total} node(s)` +
+        (total > 0 ? "" : " (expected > 0 — the graph is up but not populated)"),
+    );
+  }
+}
+
+/**
+ * Find a real node csid to probe node/neighborhood with, in preference order:
+ *
+ * 1. a {@link CORE_DOMAINS} node that **has at least one relationship**, so the
+ *    neighborhood check proves real edges rather than an isolated node's empty
+ *    hood (a corpus node with no edges would pass a nodes-only assertion);
+ * 2. a search hit — the sidecar path, which is checked either way;
+ * 3. the Neo4j-backed `/overview` snapshot, so the node checks still run when
+ *    the sidecar is down but Neo4j is up.
+ *
+ * Returns `connected: true` only for case 1, so the caller knows whether an
+ * empty neighborhood is a genuine failure. `csid` is null when none yields a node.
+ */
+interface Probe {
+  csid: string | null;
+  connected: boolean;
+}
+
 async function discoverCsid(
   checks: Check[],
   sidecarUp: boolean,
-): Promise<string | null> {
+  neo4jUp: boolean,
+): Promise<Probe> {
+  let searchCsid: string | null = null;
+
   if (sidecarUp) {
     for (const term of SEARCH_TERMS) {
       const r = await getJson<SearchResponse>(
@@ -152,25 +271,39 @@ async function discoverCsid(
           "pass",
           `q="${term}" → ${hits.length} hit(s), first csid=${hits[0].csid}`,
         );
-        return hits[0].csid;
+        searchCsid = hits[0].csid;
+        break;
       }
     }
-    record(
-      checks,
-      "search",
-      "fail",
-      `no hits for any of ${SEARCH_TERMS.join(", ")} (expected a live corpus)`,
-    );
+    if (!searchCsid) {
+      record(
+        checks,
+        "search",
+        "fail",
+        `no hits for any of ${SEARCH_TERMS.join(", ")} (expected a live corpus)`,
+      );
+    }
   } else {
     record(checks, "search", "skip", "sidecar down");
   }
+
+  if (neo4jUp) {
+    const alternation = CORE_DOMAINS.map((d) => d.label).join("|");
+    const connected = await cypher(
+      `MATCH (n:${alternation})-[]-() RETURN n.csid AS csid LIMIT 1`,
+    );
+    const csid = connected.body?.rows?.[0]?.[0];
+    if (typeof csid === "string" && csid) return { csid, connected: true };
+  }
+
+  if (searchCsid) return { csid: searchCsid, connected: false };
 
   // Fallback: pull one node straight from the Neo4j-backed overview snapshot.
   const overview = await getJson<{ nodes?: GraphNode[] }>(
     "/api/graph/overview?limit=1",
   );
   const node = overview.body?.nodes?.[0];
-  return node?.csid ?? null;
+  return { csid: node?.csid ?? null, connected: false };
 }
 
 async function main(): Promise<number> {
@@ -233,10 +366,14 @@ async function main(): Promise<number> {
     record(checks, "metrics", "skip", "sidecar down");
   }
 
-  // 3. Discover a real csid (via search, else the Neo4j overview fallback).
-  const csid = await discoverCsid(checks, sidecarUp);
+  // 3. Core domains (Neo4j) — the graph is up AND holds the real corpus.
+  await checkCoreDomains(checks, neo4jUp);
 
-  // 4. Node + neighborhood (Neo4j) — need both a csid and Neo4j up.
+  // 4. Discover a real csid (an edge-bearing corpus node when one exists, else
+  //    a search hit, else the Neo4j overview fallback).
+  const { csid, connected } = await discoverCsid(checks, sidecarUp, neo4jUp);
+
+  // 5. Node + neighborhood (Neo4j) — need both a csid and Neo4j up.
   if (!neo4jUp) {
     record(checks, "node/:id", "skip", "Neo4j down");
     record(checks, "neighborhood/:id", "skip", "Neo4j down");
@@ -268,19 +405,29 @@ async function main(): Promise<number> {
       `/api/graph/neighborhood/${enc}?depth=1`,
     );
     const nbNodes = nbRes.body?.nodes ?? [];
-    if (nbRes.reached && nbRes.status === 200 && nbNodes.length > 0) {
+    const nbEdges = nbRes.body?.edges ?? [];
+    // The probe was picked *because* it has a relationship, so an empty edge
+    // list there means the traversal — not the corpus — is broken.
+    const edgesOk = !connected || nbEdges.length > 0;
+    if (
+      nbRes.reached &&
+      nbRes.status === 200 &&
+      nbNodes.length > 0 &&
+      edgesOk
+    ) {
       record(
         checks,
         "neighborhood/:id",
         "pass",
-        `${nbNodes.length} node(s), ${nbRes.body?.edges?.length ?? 0} edge(s) at depth ${nbRes.body?.depth ?? 1}`,
+        `${nbNodes.length} node(s), ${nbEdges.length} edge(s) at depth ${nbRes.body?.depth ?? 1}`,
       );
     } else {
       record(
         checks,
         "neighborhood/:id",
         "fail",
-        `status=${nbRes.status} nodes=${nbNodes.length} for csid=${csid} (expected ≥ 1)`,
+        `status=${nbRes.status} nodes=${nbNodes.length} edges=${nbEdges.length} ` +
+          `for csid=${csid} (expected ≥ 1 node${connected ? " and ≥ 1 edge" : ""})`,
       );
     }
   }

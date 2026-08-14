@@ -8,6 +8,7 @@
     "start": "uv run --all-packages python -m pinakes",
     "build": "vite build --config web/vite.config.ts",
     "dev:full": "./scripts/dev-full.sh",
+    "graph:up": "./scripts/graph-up.sh",
     "sidecar:up": "docker compose -f infra/docker-compose.yml up -d --build pinakes_engine neo4j",
     "sidecar:down": "docker compose -f infra/docker-compose.yml stop pinakes_engine neo4j",
     "smoke:graph": "tsx scripts/smoke-graph.ts",
