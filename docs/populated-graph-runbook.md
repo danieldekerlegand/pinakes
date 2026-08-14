@@ -145,6 +145,65 @@ wrong data.
 
 ---
 
+## Browser-verifying the atlas against it — `npm run test:e2e:graph`
+
+`npm run smoke:graph` proves the **API** answers with real data; the Playwright suite proves
+the **UI** renders it. One command does the whole thing (pinakes:100 US-2):
+
+```bash
+npm run test:e2e:graph        # graph:up → install chromium → playwright test
+```
+
+`scripts/e2e-graph.sh` is `graph-up.sh` plus the two things that make the browser run see
+real data:
+
+1. It **exports** the `graph-env.sh` variables. `webServer.env` in
+   `web/playwright.config.ts` merges with `process.env`, so the service Playwright boots
+   reads the same `PINAKES_ENGINE_CORPUS` / `NEO4J_*` the loader used, and
+   `/api/graph/status` answers `neo4j: true` inside the run.
+2. It runs `npx playwright install chromium`. **`npm install` does not install the
+   browser** — only the `@playwright/test` package is a dependency, so a fresh checkout
+   otherwise fails every spec with *"Executable doesn't exist"*, which looks like 19 spec
+   failures and is none.
+
+The suite is green in **both** graph states, and the specs branch rather than hedge:
+
+| Graph | Result | What ran |
+|---|---|---|
+| down (`npm run test:e2e`) | 15 passed, 4 skipped | the graceful-degradation describe; the populated-graph one skips |
+| up (`npm run test:e2e:graph`) | 15 passed, 4 skipped | the populated-graph describe; the degradation one skips |
+
+The probe is `e2e/support/graph-state.ts` (`/api/graph/status`, once per worker). "The gate
+is dimmed" and "the live control rendered real data" are mutually exclusive claims about
+the same DOM, so an `.or()` of them would pass whichever one regressed — see `e2e/CLAUDE.md`.
+
+> **Gotcha — Playwright REUSES a server already on the port.** A reused server keeps the
+> environment *it* was started with, not the one the script exported, so a stale
+> `npm start` on `3055` would silently send the run down the graph-DOWN branch. The script
+> probes the port first and **exits 1** with instructions rather than "verifying" the wrong
+> stack. Stop the stale server, or start it with `PORT=3055 npm run dev:full`.
+
+`PINAKES_SKIP_GRAPH=1 npm run test:e2e:graph` skips the bring-up when the graph is already
+loaded; extra arguments pass straight through (`npm run test:e2e:graph -- --headed`).
+
+### What the real-data run caught
+
+Both were invisible to the ~2,600-test vitest suite, and one was invisible to the e2e suite
+as it stood — which is the argument for this runbook:
+
+- **`page.route` never fired.** The suite drives the *production* client, which registers
+  `/sw.js`; a service worker's fetches bypass Playwright's interception, so every "graph up"
+  mock in `graph-ui.spec.ts` was asserting against whatever the real server answered. Fixed
+  with `serviceWorkers: "block"`.
+- **The neighborhood legend collapsed to a single "Entity".** Every node in the canonical
+  export carries the umbrella `:Entity` label alongside its specific one, and Neo4j gives no
+  ordering guarantee — so `primaryLabel()`'s `labels[0]` typed and coloured whole
+  neighborhoods identically, *nondeterministically*. The fixtures list the specific label
+  first, so no unit test could reach it. Fixed in
+  `web/src/lib/graph/neighborhood-graph.ts`.
+
+---
+
 ## Environment
 
 All of it is defaulted by `scripts/graph-env.sh` (sourced by `graph-up.sh` and
@@ -177,11 +236,14 @@ uv run --all-packages pinakes_engine neo4j-counts            #    (inspect)
 
 npm run build && npm start                                   # 4
 npm run smoke:graph                                          # 5
+npx playwright install chromium                              # 6
+npx playwright test --config web/playwright.config.ts        # 7
 ```
 
-Steps 1–3 are `npm run graph:up`; 1–4 are `npm run dev:full`. Because every step is
-idempotent, a CI job can run `npm run graph:up` and then start the app with the same
-environment exported — see `scripts/graph-env.sh` for the variables to carry across.
+Steps 1–3 are `npm run graph:up`; 1–4 are `npm run dev:full`; 1–3 + 6–7 are
+`npm run test:e2e:graph`. Because every step is idempotent, a CI job can run
+`npm run graph:up` and then start the app with the same environment exported — see
+`scripts/graph-env.sh` for the variables to carry across.
 
 ## Troubleshooting
 
@@ -193,6 +255,9 @@ environment exported — see `scripts/graph-env.sh` for the variables to carry a
 | `sidecar=false` in `/api/graph/status` | `PINAKES_ENGINE_CORPUS` points at a directory with no `nodes/`. |
 | `node/:id` 404s on a csid `search` just returned | The in-process corpus and Neo4j were loaded from **different** exports. Re-run `npm run graph:up` so both read `$PINAKES_ENGINE_CORPUS`. |
 | The load's output is 37 paragraphs of "already exists" | Expected on a re-run; `graph-up.sh` filters those lines and shows them in full only when the load fails. |
+| Every e2e spec fails with "Executable doesn't exist" | The Chromium build is not installed — `npx playwright install chromium`. `npm install` does not fetch it. |
+| `test:e2e:graph` exits 1 before running any spec | A stale server on `$E2E_PORT` does not see the populated graph. Stop it; Playwright will boot its own with the right environment. |
+| The populated-graph specs all report *skipped* | `/api/graph/status` answered `neo4j: false`, so the suite took its graph-down branch. Same cause as the row above. |
 
 ## See also
 

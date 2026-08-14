@@ -25,6 +25,15 @@ const BASE_URL = `http://localhost:${PORT}`;
 // `../`-relative. Playwright resolves them against the config's directory.
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 
+// The bring-up variables `scripts/graph-env.sh` resolves (see
+// `docs/populated-graph-runbook.md`). Present ⇒ the specs' graph-state probe
+// finds a live, populated graph; absent ⇒ the suite takes its graph-down branch.
+const GRAPH_ENV: Record<string, string> = Object.fromEntries(
+  ["NEO4J_URI", "NEO4J_USER", "NEO4J_PASSWORD", "PINAKES_ENGINE_CORPUS"]
+    .filter((key) => process.env[key])
+    .map((key) => [key, process.env[key] as string]),
+);
+
 export default defineConfig({
   testDir: "../e2e",
   outputDir: "../test-results",
@@ -44,6 +53,14 @@ export default defineConfig({
     baseURL: BASE_URL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
+    // The service serves the PRODUCTION client, which registers `/sw.js`
+    // (web/src/lib/pwa/register.ts). A service worker's fetches bypass
+    // `page.route`, so with the default `"allow"` every `/api/*` interception a
+    // spec registers silently no-ops — the specs still ran, against whatever the
+    // real server (or the SW's cache) answered, which is how the graph-up mocks
+    // in graph-ui.spec.ts came to assert nothing. Blocking it also keeps the
+    // run deterministic: no cached API response survives into the next test.
+    serviceWorkers: "block",
   },
   projects: [
     {
@@ -61,8 +78,15 @@ export default defineConfig({
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
+    // Playwright MERGES this with `process.env`, which is the whole wiring for
+    // the populated-graph run: `scripts/e2e-graph.sh` sources
+    // `scripts/graph-env.sh` and exports these, so the service booted here
+    // reads the same corpus + Neo4j the loader used. Listed explicitly (rather
+    // than relying on the merge) so the dependency is visible from the config;
+    // an unset variable is omitted, leaving the service's own default in place.
     env: {
       PORT: String(PORT),
+      ...GRAPH_ENV,
     },
     stdout: "pipe",
     stderr: "pipe",

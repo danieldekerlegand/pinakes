@@ -1,5 +1,7 @@
 import { test, expect, type Page, type Route } from "@playwright/test";
 
+import { graphIsUp, realNeighborhood } from "./support/graph-state";
+
 /**
  * Graph-UI verification e2e (US-007).
  *
@@ -8,18 +10,29 @@ import { test, expect, type Page, type Route } from "@playwright/test";
  * federated (local + graph) search, and the provenance UI — plus the
  * `GraphFeatureGate` disabled-with-tooltip affordance.
  *
- * The shared graph (Neo4j + culture-scrape sidecar) is OPTIONAL and is down in
- * dev/CI, so each feature is exercised in BOTH states:
+ * The shared graph (Neo4j + the in-process corpus reader) is OPTIONAL, so each
+ * feature is exercised in THREE ways:
  *
- *   - "graph down" runs against the real dev server with no mocks — the honest
- *     default. It confirms every feature degrades gracefully (the gate dims +
- *     explains, the adapter shows its error state, federated search returns only
- *     local hits) and never presents a broken-but-clickable control.
- *   - "graph up" intercepts the `/api/graph/*` + `/api/search` responses at the
- *     network boundary (the same fixture approach the vitest suites use) so the
- *     real React components render their happy path — neighborhood nodes, a
- *     provenance badge, a populated adapter, and a graph-sourced search result —
- *     without requiring a live Neo4j/sidecar.
+ *   - "graph down" runs against the real server with no mocks — CI's default,
+ *     and a contributor's without Docker. It confirms every feature degrades
+ *     gracefully (the gate dims + explains, the adapter shows its error state,
+ *     federated search returns only local hits) and never presents a
+ *     broken-but-clickable control. SKIPPED when the graph is actually up:
+ *     "degrades" and "renders real data" are mutually exclusive claims about the
+ *     same DOM, so the run picks the one that is true rather than `.or()`-ing
+ *     them into an assertion that cannot fail.
+ *   - "graph up (mocked)" intercepts `/api/graph/*` + `/api/search` at the
+ *     network boundary so the happy path is browser-verified even where no
+ *     Neo4j exists. Runs in both states.
+ *   - "REAL populated graph" (pinakes:100 US-2) drives the same four features
+ *     against a Neo4j loaded from the canonical export — no mocks, asserting on
+ *     named corpus content (Mandarin's real neighbours, a real Sumer graph hit).
+ *     SKIPPED when the graph is down. Bring it up with `npm run test:e2e:graph`
+ *     (docs/populated-graph-runbook.md).
+ *
+ * NOTE the mocks only bite because `playwright.config.ts` sets
+ * `serviceWorkers: "block"` — the production client registers `/sw.js`, and a
+ * service worker's fetches bypass `page.route` entirely.
  *
  * Selectors prefer stable `data-testid`s + accessible names over CSS.
  */
@@ -191,6 +204,14 @@ async function openSearch(page: Page) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe("graph UI degrades gracefully when the shared graph is down", () => {
+  test.beforeEach(async ({ request }) => {
+    test.skip(
+      await graphIsUp(request),
+      "the shared graph is UP — the degraded affordances under test do not render; " +
+        'see the "REAL populated graph" describe below',
+    );
+  });
+
   test("Show-in-graph is gated (dimmed + tooltip) on an entity panel", async ({
     page,
   }) => {
@@ -309,5 +330,140 @@ test.describe("graph UI renders against a (mocked) live shared graph", () => {
     await expect(page.getByText("Graph", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("culture-scrape").first()).toBeVisible();
     await page.screenshot({ path: `${SHOTS}/up-federated-search.png` });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REAL populated graph (pinakes:100 US-2) — no mocks. Neo4j is loaded from the
+// canonical export, so every assertion below is on named corpus content.
+// Bring it up: `npm run test:e2e:graph` (docs/populated-graph-runbook.md).
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * A query whose hits genuinely come from BOTH halves of the federation. Local
+ * `Sumer*` rows live in the language/civilization lexicons; the graph adds
+ * `cs:culture:sumerian` and `cs:archaeological-culture:Q35355`, which have no
+ * local twin and so survive the csid dedup in
+ * `services/api/src/pinakes/search/global_search.py`. ("Mandarin" does not work
+ * for this: its graph node shares `cs:language:cmn` with the local row and is
+ * deduped away — a real behaviour worth stating, not a bug.)
+ */
+const FEDERATED_QUERY = "Sumer";
+
+test.describe("graph UI renders REAL data from the populated graph", () => {
+  test.beforeEach(async ({ request }) => {
+    test.skip(
+      !(await graphIsUp(request)),
+      "the shared graph is DOWN — run `npm run test:e2e:graph` to load it",
+    );
+  });
+
+  test("the neighborhood view draws an entity's real neighbours", async ({
+    page,
+    request,
+  }) => {
+    // Read the neighborhood the UI is about to draw straight off the API, so
+    // the assertions below name the same real data (and so an empty graph fails
+    // here rather than passing a vacuous DOM check).
+    const probe = await realNeighborhood(request, LANGUAGE_CSID);
+    expect(probe.name).toBe("Mandarin");
+
+    await page.goto(`/?langDetail=${LANGUAGE_ID}`);
+    await expect(page.getByTestId("text-detail-title-mandarin")).toBeVisible();
+
+    // Neo4j is really up, so GraphFeatureGate passes the child through — no
+    // disabled wrapper, a live button.
+    const button = page.getByTestId("button-show-in-graph");
+    await expect(button).toBeVisible();
+    await button.click();
+
+    // `/api/graph/resolve` answers from the lexicon alias table…
+    const view = page.getByTestId("graph-neighborhood-view");
+    await expect(view).toBeVisible();
+    // …and the neighborhood came back non-empty, so neither the unavailable nor
+    // the empty affordance renders.
+    await expect(view.getByTestId("graph-unavailable")).toHaveCount(0);
+    await expect(view.getByTestId("graph-empty")).toHaveCount(0);
+
+    // The force graph drew one circle per real node (14 for cs:language:cmn at
+    // depth 1 today) — asserted as "as many as the API returned", so the check
+    // tracks the corpus instead of pinning a number that a data change moves.
+    const svg = view.getByTestId("network-graph-svg");
+    await expect(svg).toBeVisible();
+    await expect(svg.locator("circle")).toHaveCount(probe.nodeCount);
+
+    // The legend carries one entry per DISTINCT node label actually returned —
+    // asserted against the labels read off the API above, not a hard-coded list.
+    // This is the regression gate for `primaryLabel`: every exported node also
+    // carries the umbrella `:Entity`, and Neo4j gives no order guarantee, so
+    // taking `labels[0]` collapsed the legend to a lone "Entity" at random.
+    const legend = view.getByTestId("graph-legend");
+    await expect(legend).toBeVisible();
+    for (const label of probe.labels) {
+      await expect(legend).toContainText(label);
+    }
+    expect(probe.labels).toContain("Language");
+
+    await page.screenshot({ path: `${SHOTS}/real-neighborhood.png` });
+  });
+
+  test("the explorer graph adapter projects real graph nodes", async ({
+    page,
+    request,
+  }) => {
+    const overview = await request.get("/api/graph/overview");
+    expect(overview.ok()).toBeTruthy();
+    const nodes = ((await overview.json()) as { nodes?: unknown[] }).nodes ?? [];
+    expect(nodes.length, "the overview should be non-empty").toBeGreaterThan(0);
+
+    await page.goto("/?panel=explore&ds=pinakes-graph");
+    await expect(page.getByText(/Failed to load/i)).toHaveCount(0);
+    // The adapter projects one item per overview node.
+    await expect(page.getByText(`${nodes.length} items`)).toBeVisible();
+
+    await page.screenshot({ path: `${SHOTS}/real-explorer-adapter.png` });
+  });
+
+  test("federated search merges a real graph-sourced hit", async ({
+    page,
+    request,
+  }) => {
+    // Confirm the server really federates for this query before asserting the
+    // UI renders it — otherwise a graph-half regression would read as a UI bug.
+    const res = await request.get(
+      `/api/search?q=${encodeURIComponent(FEDERATED_QUERY)}`,
+    );
+    expect(res.ok()).toBeTruthy();
+    const body = (await res.json()) as {
+      results: { source: string; displayName: string; csid?: string }[];
+    };
+    const graphHit = body.results.find((r) => r.source === "graph");
+    expect(graphHit, `"${FEDERATED_QUERY}" should return a graph-sourced hit`)
+      .toBeTruthy();
+    expect(body.results.some((r) => r.source === "local")).toBeTruthy();
+
+    await page.goto("/");
+    const input = await openSearch(page);
+    await input.fill(FEDERATED_QUERY);
+
+    // Both halves render: the purple "Graph" pill on the graph hit, the "Local"
+    // pill on the corpus rows, and the graph hit under its real display name.
+    await expect(page.getByText("Graph", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Local", { exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByRole("option", { name: new RegExp(graphHit!.displayName) }).first(),
+    ).toBeVisible();
+
+    await page.screenshot({ path: `${SHOTS}/real-federated-search.png` });
+  });
+
+  test("the research console's graph run control is live", async ({ page }) => {
+    await page.goto("/advanced-tools");
+    await expect(page.getByTestId("advanced-tools-page")).toBeVisible();
+    // With the graph up the gate passes its child through: the Run button is
+    // enabled rather than wrapped in the disabled affordance.
+    const runButton = page.getByTestId("console-run-datalog");
+    await expect(runButton).toBeVisible();
+    await expect(runButton).toBeEnabled();
   });
 });

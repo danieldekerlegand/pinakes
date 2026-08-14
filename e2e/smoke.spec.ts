@@ -44,12 +44,13 @@ test.describe("core flows smoke", () => {
     // The explorer's free-text search input is always present once mounted.
     const search = page.getByPlaceholder(/^Search .*…$/);
     await expect(search).toBeVisible();
-    // …and it renders an item count once the dataset endpoint resolves, proving
-    // the client → Express → TSV path works end to end.
-    await expect(page.getByText(/\d+ items/)).toBeVisible();
+    // …and it renders a NON-ZERO item count once the dataset endpoint resolves,
+    // proving the client → service → TSV corpus path works end to end. `\d+`
+    // would also pass on an empty corpus, which is the failure this is for.
+    await expect(page.getByText(/[1-9]\d* items/)).toBeVisible();
   });
 
-  test("graph feature opens and degrades gracefully when the graph is down", async ({
+  test("the graph affordance renders in whichever state the graph is in", async ({
     page,
   }) => {
     await page.goto("/advanced-tools");
@@ -58,10 +59,12 @@ test.describe("core flows smoke", () => {
     await expect(page.getByTestId("console-editor-datalog")).toBeVisible();
 
     // The "Run" trigger is wrapped in a GraphFeatureGate(backend="sidecar").
-    // With the sidecar up the button is live; with it down the gate renders a
-    // disabled, tooltip-explained affordance. Either is a valid smoke outcome —
-    // what matters is the page opened without crashing and the graph affordance
-    // is present in one of its two states.
+    // With the graph up the button is live; with it down the gate renders a
+    // disabled, tooltip-explained affordance. Either is a valid SMOKE outcome —
+    // what matters here is only that the page opened without crashing and the
+    // affordance is present in one of its two states. Which state it *should*
+    // be in, and that the live control really answers, is asserted properly in
+    // graph-ui.spec.ts, which branches on the probe in support/graph-state.ts.
     const runButton = page.getByTestId("console-run-datalog");
     const disabledGate = page.getByTestId("graph-feature-gate-disabled");
     await expect(runButton.or(disabledGate).first()).toBeVisible();

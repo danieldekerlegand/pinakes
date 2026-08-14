@@ -74,6 +74,37 @@ describe("primaryLabel", () => {
   it("falls back to 'Node' when there are no labels", () => {
     expect(primaryLabel(NEIGHBORHOOD.nodes[2])).toBe("Node");
   });
+  // The populated graph puts the umbrella `:Entity` on every node and Neo4j
+  // gives no order guarantee, so `labels[0]` typed whole neighborhoods as
+  // "Entity" at random (pinakes:100 US-2).
+  it("skips the umbrella :Entity label whichever position it arrives in", () => {
+    expect(
+      primaryLabel({
+        csid: "cs:x:1",
+        labels: ["Entity", "Language"],
+        name: "x",
+        properties: {},
+      }),
+    ).toBe("Language");
+    expect(
+      primaryLabel({
+        csid: "cs:x:2",
+        labels: ["Language", "Entity"],
+        name: "x",
+        properties: {},
+      }),
+    ).toBe("Language");
+  });
+  it("still reports :Entity when it is the node's only label", () => {
+    expect(
+      primaryLabel({
+        csid: "cs:x:3",
+        labels: ["Entity"],
+        name: "x",
+        properties: {},
+      }),
+    ).toBe("Entity");
+  });
 });
 
 describe("labelColor", () => {
