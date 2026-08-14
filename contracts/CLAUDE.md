@@ -240,6 +240,23 @@ contract stays in `docs/capability-bus.md`).
   downstream per ADR-0001"), and `assertSupportedKeywords` fails loudly on a keyword it does not
   implement rather than passing a document by not looking at it. The conformance tests `skipIf`
   when no sibling koine checkout is present — same rule as the registry-mirror gate.
+- **A red koine-conformance test usually means the sibling checkout MOVED, not that your branch
+  broke something.** Because those tests are `skipIf`-gated on `$KOINE_ROOT` (else
+  `~/Development/koine`), an upstream spec change lands as a fresh failure on a machine that has
+  the checkout and stays invisible on one that does not — so it surfaces on an unrelated branch,
+  at merge time. Read the offending `pattern` in `~/Development/koine/schemas/*.schema.json` and
+  the governing spec § before changing anything: the fix is to follow koine, never to loosen the
+  local check. **Ask producer-or-consumer first.** A koine transition window typically obliges
+  consumers to accept both the old and new form while obliging producers to emit only the new one
+  (e.g. the KCB manifest extension URI's move to `https://w3id.org/koine/kcb/manifest/0.3` at KCB
+  0.4.1, §2.3). Pinakes publishes and does not crawl, so its checks stay narrow.
+- **The KCB manifest extension URI lives in six places, three of them prose.** `participant.json`,
+  `participant.ts`'s `MANIFEST_EXTENSION_RE` (a local copy of koine's schema pattern —
+  fixing only the JSON just moves the failure to the next test), `capability-manifest.ts`'s
+  `KCB_MANIFEST_EXTENSION_URI`, `capability-manifest.json`'s `x_pinakes.endpointNote`, the Python
+  copy in `services/api/src/pinakes/kcb/agent_card.py`, and `docs/{capability-bus,self-describing-participant}.md`.
+  The note is not decoration: `assertParticipantManifestAgreement` asserts it *string-contains*
+  the declared URI, so stale prose fails a contract test. Grep the literal; do not edit by memory.
 - **Every pointer must be relative to this repo's root.** `assertValidParticipant` rejects an
   absolute path or one that climbs out (`../koine/...`): no participant reads another
   participant's repository, and a shared-checkout dependency wearing a pointer's clothes is the
