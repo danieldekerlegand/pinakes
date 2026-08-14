@@ -113,7 +113,38 @@ optional). Rules:
   (`npx tsx scripts/export-for-engine.ts`) and run `npm run convergence-qa` — a
   live-corpus test asserts `snapshot.provenance` equals a fresh build's.
 
-## Live-graph smoke test (US-005)
+## Populated-graph bring-up — `graph-env.sh` / `graph-up.sh` / `dev-full.sh` (pinakes:100 US-1)
+
+The three shell scripts here are the **one-command bring-up** of the stack against real
+corpus data. Full runbook: [`docs/populated-graph-runbook.md`](../docs/populated-graph-runbook.md).
+
+- **`graph-env.sh` is SOURCED, never run.** It resolves `$PINAKES_ROOT`, the `NEO4J_*`
+  credential and `$PINAKES_ENGINE_CORPUS` with `:=` defaults, and both other scripts source
+  it. That is what stops the Neo4j loader, the in-process corpus reader and `smoke:graph`
+  from disagreeing about which directory is "the corpus" — the failure mode that makes
+  `node/:id` 404 on a csid `search` just returned.
+- **`graph-up.sh` (`npm run graph:up`) is the graph half alone** — start Neo4j → wait for
+  `healthy` → export if absent → `to-neo4j --mode loadcsv`. Every step is idempotent and
+  skipped when already satisfied, and it leaves Neo4j **running** (everything that consumes
+  a populated graph is a separate process). `dev-full.sh` (`npm run dev:full`) calls it,
+  then `npm run build && npm start`.
+- **There is NO sidecar container leg.** The engine is imported in-process, so
+  `/api/graph/status`'s `sidecar` field means "the in-process corpus reader found a corpus".
+  The `pinakes_engine` compose service is unused here and does not build. The old
+  `dev-full.sh` started it with `--build` and therefore could not complete.
+- **GOTCHA — `neo4j/pinakes` is 7 characters and neo4j:5 requires 8.** The container exits
+  **70** on a fresh volume ("A password must be at least 8 characters"), so
+  `infra/docker-compose.yml` sets `NEO4J_dbms_security_auth__minimum__password__length: "4"`
+  rather than changing the credential every doc records. `graph-up.sh` polls
+  `docker inspect`'s health status and fails with the container logs instead of proceeding
+  into a load that cannot connect.
+- **Filter the loader's output, but only on success.** The engine CLI logs at INFO and the
+  Neo4j driver relays one server notification per `IF NOT EXISTS` constraint, so a re-run
+  buries its single real line under ~37 paragraphs of "already exists". `graph-up.sh`
+  captures to a temp file, greps those out for display, and `cat`s the **whole** log
+  untouched when the load fails.
+
+## Live-graph smoke test (US-005; populated-graph leg pinakes:100 US-1)
 
 `smoke-graph.ts` is the one script here that makes **HTTP** calls (not a data
 transform) — it probes the running app's `/api/graph/*` routes and asserts real,
@@ -127,23 +158,30 @@ non-empty data (`npm run smoke:graph`, docs in
 - **Exit-code contract:** `0` = passed **or** gracefully skipped (stack down — absent
   services are not a failure); `1` = a backend was **up** but a check returned
   empty/wrong data (a real regression). This lets it run locally with nothing up.
-- Response **types are imported** from the server services (`graph-health`,
-  `graph-store`, `engine-client`) via `import type` — parity with the routes,
-  erased at runtime. It imports no runtime server code, so it starts instantly.
+- Response shapes are **stated locally**, narrowed to the fields the smoke reads. They used
+  to be `import type`s from the Express services (`graph-health`, `graph-store`,
+  `engine-client`); 80-cutover US-2 deleted those, and the routes are Python now
+  (`services/api/src/pinakes/routers/graph.py`), so there is no TS declaration left to
+  import. Drift surfaces as a failed check against a live stack — which is the point.
 - It discovers a real node `csid` from `/search` (sidecar), falling back to
   `/overview` (Neo4j) so the node/neighborhood checks can still run when only one
   backend is up.
-- **GOTCHA — the sidecar and Neo4j must serve the SAME corpus or the cross-backend
-  `node/:id` check 404s.** `discoverCsid` takes a csid from the **sidecar** search
-  then looks it up in **Neo4j**; if the sidecar is on its bundled 9-node demo
-  fixture (the `CORPUS` default) while Neo4j holds the pinakes export
-  (loaded by `to-neo4j build/corpus`), the csid doesn't exist in Neo4j and
-  the smoke fails. To run a fully green smoke: point the sidecar at the same bare
-  corpus — `infra/docker-compose.yml` mounts the gitignored `build/corpus` at
-  `/corpus:ro`, so bring the stack up with `PINAKES_ENGINE_CORPUS=/corpus docker
-  compose up -d pinakes_engine neo4j` (`load_corpus` reads a `nodes/`+`edges/` dir
-  directly). Default stays the demo fixture so a bare `docker compose -f infra/docker-compose.yml up` still
-  starts when no export has been built.
+- **It asserts the graph is POPULATED, not just reachable** (pinakes:100 US-1). One
+  read-only label-count query through `POST /api/graph/cypher` backs a `domain:` check per
+  `CORE_DOMAINS` entry (civilizations→`:Culture`, sites→`:Place`, deities→`:Deity`, writing
+  systems→`:WritingSystem`, languages→`:Language`); an empty graph — or the 9-node
+  `explorer-corpus` fixture — passes status/metrics/search and fails all five. And the
+  probe csid is chosen as a core-domain node that **has a relationship**, so
+  `neighborhood/:id` proves a real traversal (an empty edge list on such a probe is a
+  failure, not a shrug). Negative control: point one `CORE_DOMAINS` label at a
+  nonexistent one and the run exits 1.
+- **GOTCHA — the in-process corpus and Neo4j must be loaded from the SAME export or the
+  cross-backend `node/:id` check 404s.** `discoverCsid` may take a csid from the corpus
+  **search** and look it up in **Neo4j**; if `PINAKES_ENGINE_CORPUS` points at the bundled
+  9-node demo fixture while Neo4j holds the real export, the csid doesn't exist in Neo4j
+  and the smoke fails. `scripts/graph-env.sh` exists to make that impossible — bring the
+  stack up with `npm run graph:up` / `npm run dev:full` rather than exporting the corpus
+  path by hand.
 
 ## Entity-grounding snapshot (KGP-retargeted, US-PKA3)
 

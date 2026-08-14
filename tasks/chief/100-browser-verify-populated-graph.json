@@ -3,7 +3,7 @@
   "category": "fix",
   "branchName": "chief/100-browser-verify-populated-graph",
   "baseBranch": "main",
-  "description": "Phase A production-hardening (ROADMAP.md Phase A; prd-pinakes-deep-history-roadmap.md \u00a716 / \u00a7\"Not yet hardened\"). The atlas engine and the 14/15-domain corpus are shipped, but the UI stories are only unit-test-gated \u2014 never browser-verified against the POPULATED Neo4j graph. Bring the full stack up against real data (`bun run dev:full` + `bun run smoke:graph`) and drive the existing Playwright specs (e2e/{graph-ui,civilizations,smoke}.spec.ts) against it, so a green suite means the atlas actually renders the populated corpus, not fixtures. Coverage reality: only 3 specs exist while the atlas ships 8+ major UI surfaces \u2014 so this tasklist also AUTHORS specs for the currently uncovered surfaces (US-3), not just re-runs the existing three. Scope: e2e/ specs (existing + new), the smoke:graph/dev:full wiring, web/ fixes surfaced by real data, and docs. The corpus (\u00a715) is shipped, so this depends on nothing.",
+  "description": "Phase A production-hardening (ROADMAP.md Phase A; prd-pinakes-deep-history-roadmap.md §16 / §\"Not yet hardened\"). The atlas engine and the 14/15-domain corpus are shipped, but the UI stories are only unit-test-gated — never browser-verified against the POPULATED Neo4j graph. Bring the full stack up against real data (`bun run dev:full` + `bun run smoke:graph`) and drive the existing Playwright specs (e2e/{graph-ui,civilizations,smoke}.spec.ts) against it, so a green suite means the atlas actually renders the populated corpus, not fixtures. Coverage reality: only 3 specs exist while the atlas ships 8+ major UI surfaces — so this tasklist also AUTHORS specs for the currently uncovered surfaces (US-3), not just re-runs the existing three. Scope: e2e/ specs (existing + new), the smoke:graph/dev:full wiring, web/ fixes surfaced by real data, and docs. The corpus (§15) is shipped, so this depends on nothing.",
   "parked": false,
   "dependsOn": [],
   "touches": [
@@ -24,7 +24,7 @@
         "`bun run smoke:graph` passes against that populated graph and asserts non-empty results for the core domains (civilizations, sites, deities, writing systems, languages), not empty/fixture responses.",
         "A short docs/ runbook records the bring-up + the corpus load step so the verification is reproducible; `.chief/verify.sh` passes on the diff."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -36,7 +36,7 @@
         "Any web/ or /api defect the real-data run exposes is fixed; `bun run check` (tsc over web/ + contracts) and `bun run test` (vitest) stay green, and `bun run check:scripts` passes if scripts/ is touched.",
         "The e2e run is wired so it is runnable in CI / by hand with the documented bring-up."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -44,23 +44,23 @@
       "title": "Author Playwright specs for the uncovered atlas surfaces",
       "description": "The 3 existing specs cover a fraction of the shipped UI; author new e2e/ specs for the major surfaces that today have zero browser coverage, driven against the populated stack.",
       "acceptanceCriteria": [
-        "New Playwright specs (e2e/*.spec.ts \u2014 never *.test.ts, per e2e/CLAUDE.md) cover the currently uncovered surfaces: the immersive 3D globe (web/src/pages/immersive.tsx flat-map/globe/gallery toggle, WebGL feature-detection handled), the cultural lineage explorer (CulturalLineageExplorer / the ancestry page), the Sankey/chord/treemap flow visualizations (SankeyDiagramVisualization / ChordDiagramVisualization and kin), the etymology analyzer (word-etymology page / EtymologyTreeVisualization), the narrative journeys/stories surface (stories.tsx), and the quizzes (quiz.tsx + shared-quiz-result.tsx).",
+        "New Playwright specs (e2e/*.spec.ts — never *.test.ts, per e2e/CLAUDE.md) cover the currently uncovered surfaces: the immersive 3D globe (web/src/pages/immersive.tsx flat-map/globe/gallery toggle, WebGL feature-detection handled), the cultural lineage explorer (CulturalLineageExplorer / the ancestry page), the Sankey/chord/treemap flow visualizations (SankeyDiagramVisualization / ChordDiagramVisualization and kin), the etymology analyzer (word-etymology page / EtymologyTreeVisualization), the narrative journeys/stories surface (stories.tsx), and the quizzes (quiz.tsx + shared-quiz-result.tsx).",
         "Each new spec asserts real populated-corpus content renders (a named lineage, a real etymology chain, a non-empty flow diagram), not merely that the route mounts; a surface that legitimately cannot be e2e-driven (e.g. WebXR-only paths) is explicitly documented as excluded with the reason rather than silently skipped.",
         "`bun run test:e2e` runs the full expanded suite green against the populated stack, and the new specs are wired into the same documented CI/by-hand bring-up as US-2."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
       "id": "US-4",
       "title": "Record the browser-verification coverage",
-      "description": "Capture which atlas UI stories are now browser-confirmed against the populated graph and which remain gaps, so \u00a7\"Not yet hardened\" is honestly closed or scoped.",
+      "description": "Capture which atlas UI stories are now browser-confirmed against the populated graph and which remain gaps, so §\"Not yet hardened\" is honestly closed or scoped.",
       "acceptanceCriteria": [
         "docs/ (or the roadmap's hardening note) lists each browser-verified UI story with the spec that proves it, and flags any story still un-verified with the reason.",
         "The /api/data-quality coverage the run relies on is referenced so the verification tracks the same coverage numbers the atlas reports.",
         "`.chief/verify.sh` passes; any JSON added parses."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]

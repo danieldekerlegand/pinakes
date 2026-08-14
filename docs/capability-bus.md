@@ -194,7 +194,7 @@ as thin wrappers over the same `x_surfaces`:
 | Front | Endpoint | Built by | What it exposes |
 |---|---|---|---|
 | **MCP** | `endpoints.mcp` = `/mcp` | `server/routes/mcp.ts` (`@modelcontextprotocol/sdk`) | Every capability as an MCP tool (`resolve`/`reconcile`/`query`, plus `finetune`/`finetune_subscribe`); `list_tools` = KCB describe, `CallTool` forwards to the built surface, a down backend degrades to an MCP tool error. |
-| **A2A** | `endpoints.a2a` = `/.well-known/agent-card.json` | `server/routes/a2a.ts` (`@a2a-js/sdk`) | An A2A AgentCard advertising every capability as a skill (tags carry the `x_specialization` signal, so an FT-K tiebreak is readable from the card alone); the whole KCB §2 manifest rides as a `https://koine.dev/kcb/manifest/0.3` AgentCard extension, so a crawler pulling only the card recovers the manifest and the MCP tools url. |
+| **A2A** | `endpoints.a2a` = `/.well-known/agent-card.json` | `server/routes/a2a.ts` (`@a2a-js/sdk`) | An A2A AgentCard advertising every capability as a skill (tags carry the `x_specialization` signal, so an FT-K tiebreak is readable from the card alone); the whole KCB §2 manifest rides as a `https://w3id.org/koine/kcb/manifest/0.3` AgentCard extension, so a crawler pulling only the card recovers the manifest and the MCP tools url. |
 
 Both are authored as **server-relative paths** (validated: a non-null `endpoints.mcp`/`.a2a`
 must lead with `/`) and are absolutized against the serving/publishing origin exactly like

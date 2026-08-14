@@ -130,6 +130,7 @@ function MultipleChoiceQuestion({
                     : "border-gray-700 hover:border-gray-500 text-gray-300"
             }`}
             disabled={showResult}
+            data-testid={`quiz-option-${i}`}
           >
             <span className="font-mono text-sm mr-3 opacity-60">{String.fromCharCode(65 + i)}</span>
             {option}
@@ -816,7 +817,10 @@ export default function QuizPage() {
             <div>
               <label className="text-sm text-gray-400 mb-2 block">Category</label>
               <Select value={category} onValueChange={(v) => setCategory(v as QuizCategory)}>
-                <SelectTrigger className="bg-gray-800 border-gray-600">
+                {/* The three setup pickers carry an `aria-label`: their visible
+                    labels are bare <label>s with no `htmlFor`, so without one the
+                    combobox has no accessible name (for a screen reader or a test). */}
+                <SelectTrigger aria-label="Category" className="bg-gray-800 border-gray-600">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -826,8 +830,15 @@ export default function QuizPage() {
                   <SelectItem value="grammar">Grammar</SelectItem>
                   <SelectItem value="writing_systems">Writing Systems</SelectItem>
                   <SelectItem value="geography">Geography</SelectItem>
-                  <SelectItem value="cuisine">Cuisine & Dishes</SelectItem>
-                  <SelectItem value="civilizations">Civilizations (Chronology)</SelectItem>
+                  {/* `cuisine` and `civilizations` are deliberately NOT offered:
+                      each has a generator, but `/api/quiz`'s `validCategories`
+                      admits neither by name (the ported Express behaviour, pinned
+                      by services/api/tests/test_quiz_routes.py), so asking for one
+                      is a 400 and the picker's own option dead-ends on "No
+                      questions could be generated". They still appear inside a
+                      `mixed` draw — which is why CATEGORY_LABELS keeps labelling
+                      them. Found by driving the picker against the real service
+                      (pinakes:100 US-3). */}
                 </SelectContent>
               </Select>
             </div>
@@ -839,7 +850,7 @@ export default function QuizPage() {
                 onValueChange={(v) => setDifficulty(v as Difficulty)}
                 disabled={autoScale}
               >
-                <SelectTrigger className="bg-gray-800 border-gray-600">
+                <SelectTrigger aria-label="Difficulty" className="bg-gray-800 border-gray-600">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -877,7 +888,7 @@ export default function QuizPage() {
             <div>
               <label className="text-sm text-gray-400 mb-2 block">Number of Questions</label>
               <Select value={questionCount.toString()} onValueChange={(v) => setQuestionCount(parseInt(v))}>
-                <SelectTrigger className="bg-gray-800 border-gray-600">
+                <SelectTrigger aria-label="Number of Questions" className="bg-gray-800 border-gray-600">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

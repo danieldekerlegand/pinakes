@@ -17,7 +17,7 @@
       "path": "services/api/src/pinakes/kcb/agent_card.py",
       "note": "Serves GET /.well-known/agent-card.json on the deployment's own origin (PINAKES_PUBLIC_ORIGIN, else the origin the request arrived on). No absolute `url` is declared because Pinakes ships no fixed public origin — the card is authoritative wherever it is served, and a URL committed here would be a guess."
     },
-    "manifest_extension_uri": "https://koine.dev/kcb/manifest/0.3",
+    "manifest_extension_uri": "https://w3id.org/koine/kcb/manifest/0.3",
     "manifest_source": {
       "path": "contracts/capability-manifest.json",
       "note": "The reviewed in-repo source the card's extension params are generated from (typed + validated by contracts/capability-manifest.ts). The served card stays authoritative; this is the document it is derived from and checked against. Pinakes also serves the same payload standalone at /.well-known/kcb-manifest.json — the superseded KCB 0.2.0 front, kept for the crawlers that already pull it."

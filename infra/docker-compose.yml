@@ -15,11 +15,17 @@
 # top of infra/engine.Dockerfile. Everything the app does degrades gracefully without it
 # (docs/engine-integration.md §10b), so `npm start` is unaffected.
 #
-#   docker compose -f infra/docker-compose.yml up -d --build pinakes_engine neo4j
-#                                                       # sidecar + graph only
+#   docker compose -f infra/docker-compose.yml up -d neo4j
+#                                                       # the graph only
 #   docker compose -f infra/docker-compose.yml --profile graph up -d
 #                                                       # same, via the `graph` profile
-#   npm run dev:full                                    # sidecar + graph + the app
+#   npm run graph:up                                    # graph + the corpus LOADED into it
+#   npm run dev:full                                    # the above + the app
+#
+# ⚠️ The `pinakes_engine` service is NOT part of the live path: the engine is imported
+# in-process by the service (services/api/src/pinakes/engine/), so nothing needs the
+# container. `npm run graph:up` / `dev:full` start `neo4j` alone. Runbook:
+# docs/populated-graph-runbook.md.
 #
 # neo4j sits behind the `graph` profile (it is heavy), so a bare
 # `docker compose -f infra/docker-compose.yml up` starts only the sidecar; the scripts
@@ -81,6 +87,13 @@ services:
     environment:
       # Must match NEO4J_USER / NEO4J_PASSWORD in .env (format: user/password).
       NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/pinakes}
+      # neo4j:5 enforces a minimum initial-password length of 8; the documented
+      # dev credential (`neo4j/pinakes`, 7 chars — .env.example, docs/*, every
+      # runbook) is shorter, so without this override the container exits 70 on
+      # first boot with "A password must be at least 8 characters" and the graph
+      # never comes up. Relaxing the floor here keeps the one documented local
+      # credential valid; this container is dev-only and binds to localhost.
+      NEO4J_dbms_security_auth__minimum__password__length: "4"
       # APOC is required by the incremental `pinakes_engine to-neo4j --mode loadcsv`
       # path: node labels are reattached with apoc.create.addLabels and edges are
       # merged with apoc.merge.relationship (a data-driven :TYPE can't be MERGE'd in

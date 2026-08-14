@@ -63,9 +63,32 @@ function hashString(str: string): number {
   return Math.abs(hash);
 }
 
-/** The `:LABEL` used to type/colour a node — its first label, or a fallback. */
+/**
+ * The umbrella `:LABEL` the canonical export puts on EVERY node, alongside the
+ * node's specific one (`docs/canonical-schema.md`; `pinakes_engine neo4j-counts`
+ * reports `Entity: 6849` against a total of 6,849). It types nothing on its own.
+ */
+const UMBRELLA_LABEL = "Entity";
+
+/**
+ * The `:LABEL` used to type/colour a node — its most SPECIFIC label, or a
+ * fallback.
+ *
+ * Not simply `labels[0]`: Neo4j does not guarantee an order for a node's labels,
+ * so against the populated graph the umbrella `:Entity` comes back first often
+ * enough that the legend collapsed to a single "Entity" entry and every node in
+ * the neighborhood drew the same colour — nondeterministically, run to run. (It
+ * never showed up against the fixtures, which list the specific label first.)
+ * Skipping the umbrella makes the typing stable and meaningful; a node labelled
+ * ONLY `:Entity` still reports it rather than falling through to `UNLABELLED`.
+ *
+ * Browser-verified by e2e/graph-ui.spec.ts's populated-graph legend assertion
+ * (pinakes:100 US-2).
+ */
 export function primaryLabel(node: GraphNodePayload): string {
-  return node.labels && node.labels.length > 0 ? node.labels[0] : UNLABELLED;
+  const labels = node.labels ?? [];
+  if (labels.length === 0) return UNLABELLED;
+  return labels.find((label) => label !== UMBRELLA_LABEL) ?? labels[0];
 }
 
 /** Deterministic colour for a label, so the graph and its legend agree. */

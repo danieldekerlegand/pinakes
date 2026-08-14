@@ -40,11 +40,16 @@ export default function WordEtymology(props: WordEtymologyProps & Record<string,
   const [treeData, setTreeData] = useState<EtymologyNode | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: languagesData } = useQuery<{ items: Language[]; count: number }>({
+  // `/api/languages` answers a BARE ARRAY (services/api/src/pinakes/routers/
+  // languages.py; every other consumer types it `Language[]`). Typing it as an
+  // `{items, count}` envelope left the picker permanently empty — a real-data-only
+  // defect, since a fixture-fed unit test never sees the live shape
+  // (pinakes:100 US-3).
+  const { data: languagesData } = useQuery<Language[]>({
     queryKey: ["/api/languages"],
   });
 
-  const languages = languagesData?.items ?? [];
+  const languages = languagesData ?? [];
 
   async function traceWord(w: string, lang: string) {
     if (!w.trim()) return;
@@ -65,7 +70,15 @@ export default function WordEtymology(props: WordEtymologyProps & Record<string,
         throw new Error(text || res.statusText);
       }
       const data = await res.json();
-      setTreeData(data);
+      // The route answers the frozen parity ENVELOPE — `{tree, word, language,
+      // direction}` — not a bare node (services/api/src/pinakes/routers/
+      // linguistics.py `etymology_trace`). Reading the envelope as the node left
+      // `children` undefined, so every trace rendered the "No etymology relations
+      // found for this word" notice and a root-only tree, even for a word with
+      // real relations. Invisible to the unit suites (they feed the component a
+      // node directly); caught by driving the page against the real corpus
+      // (pinakes:100 US-3). `?? data` keeps a bare node working.
+      setTreeData((data?.tree ?? data) as EtymologyNode);
     } catch (err: any) {
       setError(err.message ?? "Failed to trace etymology");
     } finally {

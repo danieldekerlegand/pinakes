@@ -1,1 +1,7 @@
 /insimul
+# The canonical corpus export (`npx tsx scripts/export-for-engine.ts`, ~6.8k nodes) —
+# regenerable output, so it is never committed. Nothing under it was ever tracked; this
+# entry just stops a `git add -A` after a bring-up (docs/populated-graph-runbook.md) from
+# committing it. tasks/chief/105-export-dir-unify.json moves this tree to build/corpus,
+# which is already gitignored; until then it is ignored here.
+/pinakes_engine

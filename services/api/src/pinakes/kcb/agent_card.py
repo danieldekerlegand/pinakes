@@ -33,8 +33,12 @@ AGENT_CARD_ROUTE_PATH = "/.well-known/agent-card.json"
 
 #: The stable extension URI the KCB manifest rides under on the AgentCard
 #: (`koine/specs/capability-bus.md` §2). A crawler recovers the KCB §2 payload
-#: from the `capabilities.extensions[]` entry whose `uri` is this.
-KCB_MANIFEST_EXTENSION_URI = "https://koine.dev/kcb/manifest/0.3"
+#: from the `capabilities.extensions[]` entry whose `uri` is this. Its namespace
+#: root moved to a `w3id.org` permanent identifier at KCB 0.4.1 (§2.3, the legacy
+#: `koine.dev` host was verified unregistered); a producer MUST emit that current
+#: form, so the card carries it alone. Pinned to `contracts/participant.json` by
+#: `test_agent_card.py`.
+KCB_MANIFEST_EXTENSION_URI = "https://w3id.org/koine/kcb/manifest/0.3"
 
 #: `A2A_PROTOCOL_VERSION` as vendored by `@a2a-js/sdk` — the version the served
 #: card declared on its MCP interface. A bump upstream is a change here too.

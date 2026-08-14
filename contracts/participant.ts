@@ -157,8 +157,17 @@ const NAMESPACE_PREFIX_RE = /^[a-z0-9][a-z0-9-]*$/;
 /** KINP §3.2 CURIE — `namespace:kind:local`. */
 const KINP_ID_RE = /^([a-z0-9-]+):([a-z0-9-]+):(\S+)$/;
 
-/** The KCB extension URI family that identifies a manifest on an AgentCard (KCB §2). */
-const MANIFEST_EXTENSION_RE = /^https:\/\/koine\.dev\/kcb\/manifest\/\d+\.\d+$/;
+/**
+ * The KCB extension URI family that identifies a manifest on an AgentCard (KCB §2).
+ *
+ * The namespace root moved to a `w3id.org` permanent identifier at KCB 0.4.1 (§2.3).
+ * This field is what the participant declares it *serves*, and §2.3b says a producer
+ * MUST emit the current form — so, like koine's own schema pattern, only that form
+ * validates here. A *consumer* matching extensions off someone else's card owes the
+ * legacy root the dual-accept window (§2.3a) until KCB 0.6.0; that is a different
+ * check than this one, and Pinakes publishes rather than crawls.
+ */
+const MANIFEST_EXTENSION_RE = /^https:\/\/w3id\.org\/koine\/kcb\/manifest\/\d+\.\d+$/;
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.length > 0;

@@ -161,7 +161,7 @@ engine into a **browser-verified, asset-complete, citable** production atlas. So
 
 | Status | Milestone | Tasklist |
 |---|---|---|
-| ⬜ | Browser-verify the UI against the **populated** graph — `npm run dev:full` + `smoke:graph` + Playwright; confirm the unit-test-gated UI stories work with real data (§16, §"Not yet hardened") · M | `chief/100-browser-verify-populated-graph` *(proposed)* |
+| ✅ | Browser-verify the UI against the **populated** graph — `npm run graph:up`/`dev:full` + `smoke:graph` + Playwright; the unit-test-gated UI stories confirmed against real data (§16, §"Not yet hardened") · M — **37 browser tests across 9 specs, green both graph-up and graph-down**; per-story coverage *and the surfaces still unverified*: [`browser-verification-coverage.md`](docs/browser-verification-coverage.md), bring-up: [`populated-graph-runbook.md`](docs/populated-graph-runbook.md) | `chief/100-browser-verify-populated-graph` |
 | ⬜ | Source **real assets** to replace the speculative fallbacks — IPA/music-pronunciation audio, glTF/3D artifact models (§14.2/§14.3, §16) · M/L | `chief/101-source-real-media-assets` *(proposed)* |
 | ⬜ | Publish the **first** versioned **DOI** dataset snapshot off the populated corpus (§16, §12.4) · S | `chief/102-first-doi-dataset-snapshot` *(proposed)* |
 | ⬜ | ⚠️ **Security tail (human-only)** — rotate the exposed Gemini/Google-Translate keys, purge `.env` from git history + force-push (`security-hardening` closed everything else; this is the one open, key-custody item) · S | `chief/103-rotate-keys-purge-env-history` *(proposed)* |

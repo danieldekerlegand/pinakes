@@ -47,6 +47,20 @@ speculative features ship with graceful fallbacks pending real audio/3D assets; 
 API and a fully-populated Neo4j corpus remain operational work; and `npm run check` still reports
 145 pre-existing `tsc` errors to clean up.
 
+> **Browser-verification leg — closed (partially), 2026-08-14** by
+> `chief/100-browser-verify-populated-graph`. The stack now brings up against a corpus-loaded
+> Neo4j with one command (`npm run graph:up`; runbook
+> [`docs/populated-graph-runbook.md`](../populated-graph-runbook.md)) and **37 Playwright tests across 9 specs
+> pass against it — and against a graph-down stack — asserting on real corpus content**, which
+> caught six defects no unit run could see. It is *partial* on purpose: the graph surfaces,
+> lineage, ancestry, correlation flows, etymology, stories, quizzes, the immersive globe and the
+> core shell/map/explorer are browser-confirmed; the family-tree/network/timeline views, the
+> specialist panels and roughly a dozen routes remain unit-tested only. Which is which, with the
+> reason for every gap, is recorded in
+> [`docs/browser-verification-coverage.md`](../browser-verification-coverage.md) — read that
+> before treating any surface here as production-verified. The other three legs (real
+> audio/3D assets, the DOI snapshot, the 145 `tsc` errors) are untouched Phase A rows.
+
 ---
 
 ## Roadmap
