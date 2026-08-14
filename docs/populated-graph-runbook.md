@@ -170,8 +170,17 @@ The suite is green in **both** graph states, and the specs branch rather than he
 
 | Graph | Result | What ran |
 |---|---|---|
-| down (`npm run test:e2e`) | 15 passed, 4 skipped | the graceful-degradation describe; the populated-graph one skips |
-| up (`npm run test:e2e:graph`) | 15 passed, 4 skipped | the populated-graph describe; the degradation one skips |
+| down (`npm run test:e2e`) | 37 passed, 4 skipped | the graceful-degradation describe; the populated-graph one skips |
+| up (`npm run test:e2e:graph`) | 37 passed, 4 skipped | the populated-graph describe; the degradation one skips |
+
+The counts moved from 15 to 37 in pinakes:100 US-3, which added six specs for the atlas
+surfaces that had no browser coverage — `immersive`, `lineage` (cultural lineages +
+`/ancestry`), `flows` (the correlation Sankey), `etymology`, `stories` and `quiz`. They are
+**TSV-backed**, so they run identically in both graph states and need no bring-up of their
+own; they ride the same `npm run test:e2e:graph` wiring so one command covers everything.
+The per-spec map and the list of surfaces deliberately left uncovered (WebXR, the unmounted
+Sankey/Chord components, the non-existent treemap) are in
+[`e2e/CLAUDE.md`](../e2e/CLAUDE.md).
 
 The probe is `e2e/support/graph-state.ts` (`/api/graph/status`, once per worker). "The gate
 is dimmed" and "the live control rendered real data" are mutually exclusive claims about
@@ -188,8 +197,8 @@ loaded; extra arguments pass straight through (`npm run test:e2e:graph -- --head
 
 ### What the real-data run caught
 
-Both were invisible to the ~2,600-test vitest suite, and one was invisible to the e2e suite
-as it stood — which is the argument for this runbook:
+Every one of these was invisible to the ~2,600-test vitest suite, and the first two were
+invisible to the e2e suite as it stood — which is the argument for this runbook:
 
 - **`page.route` never fired.** The suite drives the *production* client, which registers
   `/sw.js`; a service worker's fetches bypass Playwright's interception, so every "graph up"
@@ -201,6 +210,29 @@ as it stood — which is the argument for this runbook:
   neighborhoods identically, *nondeterministically*. The fixtures list the specific label
   first, so no unit test could reach it. Fixed in
   `web/src/lib/graph/neighborhood-graph.ts`.
+
+Adding the six atlas specs (US-3) found four more, three of them the **same** mistake — a
+response *envelope* read as the payload, which a hand-written fixture can never expose:
+
+- **Every etymology trace said "No etymology relations found".**
+  `/api/etymology-relations/trace/:word` answers `{tree, word, language, direction}`;
+  `word-etymology.tsx` stored the envelope as the tree node, so `children` was always
+  undefined. Fixed by reading `data.tree`.
+- **Clicking any node in the cultural-lineage explorer crashed it.**
+  `/api/cultural-lineages/{ancestors,descendants}/:id` answer
+  `{entityId, lineages, count}` where the list route answers a bare array;
+  `for (const a of selectedAncestors)` threw `TypeError: … is not iterable` and React
+  unmounted the whole visualization. Only reachable by a real click: the queries are
+  `enabled: !!selectedNode`.
+- **Two language pickers were permanently empty.** `/api/languages` answers a bare array;
+  `word-etymology.tsx` and `text-analyzer.tsx` typed it `{items, count}` and read
+  `.items`.
+- **The quiz offered two categories the service rejects.** "Cuisine & Dishes" and
+  "Civilizations (Chronology)" have generators but are not in `/api/quiz`'s
+  `validCategories` (deliberate, ported from Express and pinned by
+  `services/api/tests/test_quiz_routes.py`), so picking either 400ed and dead-ended on
+  "No questions could be generated". Removed from the picker; a spec now checks every
+  offered option against the route.
 
 ---
 

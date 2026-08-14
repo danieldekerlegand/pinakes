@@ -349,7 +349,12 @@ export default function TextAnalyzer(props: TextAnalyzerProps & Record<string, a
   const [expandedOriginA, setExpandedOriginA] = useState<string | null>(null);
   const [expandedOriginB, setExpandedOriginB] = useState<string | null>(null);
 
-  const { data: languagesData } = useQuery<{ items: Language[]; count: number }>({
+  // `/api/languages` answers a BARE ARRAY (services/api/src/pinakes/routers/
+  // languages.py; every other consumer types it `Language[]`). Typing it as an
+  // `{items, count}` envelope left the picker permanently empty — a real-data-only
+  // defect, since a fixture-fed unit test never sees the live shape
+  // (pinakes:100 US-3).
+  const { data: languagesData } = useQuery<Language[]>({
     queryKey: ["/api/languages"],
   });
 
@@ -388,7 +393,7 @@ export default function TextAnalyzer(props: TextAnalyzerProps & Record<string, a
     compareMutation.mutate({ textA, textB, languageA, languageB });
   };
 
-  const languages = languagesData?.items ?? [];
+  const languages = languagesData ?? [];
   const sortedLanguages = [...languages].sort((a, b) => a.name.localeCompare(b.name));
 
   const LanguageSelector = ({ value, onChange, className }: { value: string; onChange: (v: string) => void; className?: string }) => (

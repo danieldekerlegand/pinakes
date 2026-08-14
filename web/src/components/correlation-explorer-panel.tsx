@@ -686,6 +686,7 @@ export default function CorrelationExplorerPanel({ isOpen, onClose, embedded }: 
                           ref={sankeyRef}
                           className="w-full"
                           style={{ minHeight: 400 }}
+                          data-testid="correlation-sankey-svg"
                         />
                       </div>
                     )}
@@ -695,6 +696,7 @@ export default function CorrelationExplorerPanel({ isOpen, onClose, embedded }: 
                           ref={scatterRef}
                           className="w-full"
                           style={{ minHeight: 400 }}
+                          data-testid="correlation-scatter-svg"
                         />
                       </div>
                     )}

@@ -22,6 +22,13 @@ interface CulturalLineage {
   sources: string[];
 }
 
+/** `/api/cultural-lineages/{ancestors,descendants}/:id` — an envelope, not a list. */
+interface CulturalLineageList {
+  entityId: string;
+  lineages: CulturalLineage[];
+  count: number;
+}
+
 interface LineageNode {
   id: string;
   name: string;
@@ -123,17 +130,38 @@ export function CulturalLineageExplorer() {
     staleTime: 60 * 1000,
   });
 
-  const { data: selectedAncestors } = useQuery<CulturalLineage[]>({
+  // The ancestor/descendant routes answer an ENVELOPE — `{entityId, lineages,
+  // count}` — where the list route answers a bare array. Typing these as arrays
+  // made `for (const a of selectedAncestors)` below throw
+  // "TypeError: … is not iterable" the instant a node was selected, unmounting
+  // the whole explorer. Only reachable against real data in a browser: the
+  // queries are `enabled: !!selectedNode`, so nothing but a click reaches them
+  // (pinakes:100 US-3).
+  const { data: selectedAncestors } = useQuery<CulturalLineageList>({
     queryKey: [`/api/cultural-lineages/ancestors/${selectedNode}`],
     enabled: !!selectedNode,
     staleTime: 30 * 1000,
   });
 
-  const { data: selectedDescendants } = useQuery<CulturalLineage[]>({
+  const { data: selectedDescendants } = useQuery<CulturalLineageList>({
     queryKey: [`/api/cultural-lineages/descendants/${selectedNode}`],
     enabled: !!selectedNode,
     staleTime: 30 * 1000,
   });
+
+  // Unwrap once — both the highlight memo and the detail card below want the list.
+  // Memoized so the `?? []` fallback does not hand out a fresh array identity on
+  // every render: `highlightedIds` depends on these, and the d3 effect depends on
+  // `highlightedIds`, so an unstable reference would rebuild the whole force
+  // simulation on every render.
+  const ancestorLineages = useMemo(
+    () => selectedAncestors?.lineages ?? [],
+    [selectedAncestors],
+  );
+  const descendantLineages = useMemo(
+    () => selectedDescendants?.lineages ?? [],
+    [selectedDescendants],
+  );
 
   const graph = useMemo(() => {
     if (!lineages) return { nodes: [], links: [] };
@@ -168,20 +196,12 @@ export function CulturalLineageExplorer() {
   const highlightedIds = useMemo(() => {
     if (!selectedNode) return new Set<string>();
     const ids = new Set<string>([selectedNode]);
-    if (selectedAncestors) {
-      for (const a of selectedAncestors) {
-        ids.add(a.sourceId);
-        ids.add(a.targetId);
-      }
-    }
-    if (selectedDescendants) {
-      for (const d of selectedDescendants) {
-        ids.add(d.sourceId);
-        ids.add(d.targetId);
-      }
+    for (const lineage of [...ancestorLineages, ...descendantLineages]) {
+      ids.add(lineage.sourceId);
+      ids.add(lineage.targetId);
     }
     return ids;
-  }, [selectedNode, selectedAncestors, selectedDescendants]);
+  }, [selectedNode, ancestorLineages, descendantLineages]);
 
   const handleNodeClick = useCallback((nodeId: string) => {
     setSelectedNode((prev) => (prev === nodeId ? null : nodeId));
@@ -451,7 +471,9 @@ export function CulturalLineageExplorer() {
         </div>
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Info className="h-3.5 w-3.5" />
-          <span>{graph.nodes.length} entities, {graph.links.length} connections</span>
+          <span data-testid="lineage-summary">
+            {graph.nodes.length} entities, {graph.links.length} connections
+          </span>
         </div>
         {selectedNode && (
           <button
@@ -506,6 +528,7 @@ export function CulturalLineageExplorer() {
           width={width}
           height={height}
           className="w-full h-full"
+          data-testid="cultural-lineage-svg"
         />
 
         {/* Tooltip */}
@@ -527,11 +550,11 @@ export function CulturalLineageExplorer() {
             <h4 className="font-semibold text-sm mb-2">
               {graph.nodes.find((n) => n.id === selectedNode)?.name || selectedNode}
             </h4>
-            {selectedAncestors && selectedAncestors.length > 0 && (
+            {ancestorLineages.length > 0 && (
               <div className="mb-2">
-                <p className="text-xs font-medium text-gray-700 mb-1">Ancestors ({selectedAncestors.length})</p>
+                <p className="text-xs font-medium text-gray-700 mb-1">Ancestors ({ancestorLineages.length})</p>
                 <div className="flex flex-wrap gap-1">
-                  {selectedAncestors.slice(0, 8).map((a) => (
+                  {ancestorLineages.slice(0, 8).map((a) => (
                     <Badge key={a.id} variant="outline" className="text-xs cursor-pointer" onClick={() => handleNodeClick(a.sourceId)}>
                       {a.sourceName}
                     </Badge>
@@ -539,11 +562,11 @@ export function CulturalLineageExplorer() {
                 </div>
               </div>
             )}
-            {selectedDescendants && selectedDescendants.length > 0 && (
+            {descendantLineages.length > 0 && (
               <div>
-                <p className="text-xs font-medium text-gray-700 mb-1">Descendants ({selectedDescendants.length})</p>
+                <p className="text-xs font-medium text-gray-700 mb-1">Descendants ({descendantLineages.length})</p>
                 <div className="flex flex-wrap gap-1">
-                  {selectedDescendants.slice(0, 8).map((d) => (
+                  {descendantLineages.slice(0, 8).map((d) => (
                     <Badge key={d.id} variant="outline" className="text-xs cursor-pointer" onClick={() => handleNodeClick(d.targetId)}>
                       {d.targetName}
                     </Badge>

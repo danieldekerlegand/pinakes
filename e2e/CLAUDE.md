@@ -18,6 +18,19 @@ export, no mocks, asserting on named corpus content).
 probe the graph-state-aware describes branch on. Helpers live under `support/`;
 `testMatch` is `*.spec.ts`, so nothing there is collected as a test.
 
+Six more specs (pinakes:100 US-3) cover the atlas surfaces that had **zero**
+browser coverage, each driven against the populated stack and each asserting on
+real corpus content rather than "the route mounted":
+
+| Spec | Surface | What proves it is real data |
+|---|---|---|
+| `immersive.spec.ts` | `/immersive` — flat-map ⇄ globe ⇄ museum toggle | the gallery's artifact tiles are `/api/material-culture`'s own items in the component's sort order; the fly-through overlay names a real migration route |
+| `lineage.spec.ts` | `CulturalLineageExplorer` (`/?view=lineage`) + `/ancestry` | the drawn `<g>`/`<line>` counts equal the `/api/cultural-lineages` join; a synthesized R1b raw-DNA file infers in-browser and its `/api/ancestry/map` language families render |
+| `flows.spec.ts` | the correlation Sankey (`/?panel=correlation`) | the `<rect>`/`<path>` join re-derived from `/api/cross-domain/correlate`, labelled with the real entity names |
+| `etymology.spec.ts` | `/word-etymology` + `EtymologyTreeVisualization` | a word the corpus can actually trace, and its real related words drawn as `<text>` |
+| `stories.spec.ts` | `/stories` + `/stories/:id` | every narrative `/api/narratives` serves, its step count, and step 1's verbatim text |
+| `quiz.spec.ts` | `/quiz` + `/shared/quiz/:token` | the asked language and all four options are real corpus names; a played session's score round-trips through the share token |
+
 `civilizations.spec.ts` = the data-population pilot verification (US-005): the
 expanded civilizations corpus renders on the **map** (via the `layers=` URL
 preset), in the **UnifiedExplorer** (the `ds=civilizations` adapter), and in the
@@ -125,3 +138,72 @@ All TSV-backed, so it needs no graph.
   (`?panel=explore&ds=…`) the flex content pane can resolve to 0 height, hiding the
   message (Playwright `toBeVisible` → "hidden"). The floor keeps the graph-down
   error legible to users and the test.
+
+## What is deliberately NOT browser-covered (pinakes:100 US-3)
+
+A surface skipped for a reason belongs here, written down; a surface skipped
+silently reads as covered.
+
+- **WebXR / headset sessions** (`/immersive`, `/ar-history`). Entering an
+  `immersive-vr` session needs real hardware or a WebXR emulator extension;
+  headless Chromium exposes no `navigator.xr`, so `hasImmersiveVr` is always
+  false and the "Headset ready" affordance is unreachable. The decision logic is
+  unit-covered against an injected environment (`detectImmersiveSupport`), which
+  is the right level. `immersive.spec.ts` verifies BOTH other branches instead,
+  by reading the capability badge and branching on it.
+- **`SankeyDiagramVisualization` / `ChordDiagramVisualization`.** Neither is
+  mounted anywhere: their only importers (`CulturalInfluencePanel.tsx`,
+  `CuisineComparisonView.tsx`) are themselves unreferenced, so no URL puts either
+  on screen. `flows.spec.ts` covers the Sankey a user CAN reach — the correlation
+  explorer's. Wiring the orphans into a surface is a feature change, not
+  verification.
+- **A treemap.** There isn't one. `VisualizationType` in
+  `web/src/lib/data-explorer-registry.ts` has no `treemap` member and no
+  component draws one.
+- **`/explore`'s Sankey/Chord tiles.** They render `PlaceholderRenderer` — an
+  icon and a caption. Asserting on them would file placeholder text as
+  flow-diagram coverage.
+- **`drag_sort` / `map_click` quiz answering.** `quiz.spec.ts` verifies both
+  types RENDER (via a `mixed` draw) but answers only `multiple_choice`: HTML5
+  drag-and-drop and a Leaflet coordinate click are interaction-shaped, not
+  data-shaped, and the scoring they feed is unit-covered on both sides.
+
+### Known gaps the browser run exposed but did not fix
+
+- **All four "Interesting Queries" in the correlation explorer return zero
+  correlations.** Each curated entry pairs a domain couple with a relationship
+  type the corpus cannot satisfy — `ie-r1b` asks language×haplogroup
+  *co-occurrence* (0 results) where the same pair under *geographic-overlap*
+  yields 50. `PREBUILT_QUERIES` is a frozen parity payload pinned by
+  `services/api/tests/test_correlation.py`, so re-curating it is its own task.
+  `flows.spec.ts` branches: it asserts the diagram when a query correlates and
+  the empty-state notice when it does not, so the spec stays honest either way.
+
+## More gotchas (pinakes:100 US-3)
+
+- **A `<g>` wrapper has no fill, so `.click()` on a d3 node misses.** The
+  lineage explorer puts its click handler on the wrapper `<g>` that holds a
+  circle plus an offset label; a centre-of-bounding-box click lands in the gap
+  between them and hits nothing — and the force simulation is still moving the
+  target while Playwright aims. Use `dispatchEvent("click")`, the same escape
+  hatch the explorer Table rows need.
+- **A crashing React subtree looks like a flaky selector.** When
+  `CulturalLineageExplorer` threw on selection, the "Clear selection" button
+  appeared for one frame and then detached forever, and Playwright reported
+  *"element was detached from the DOM, retrying"* until the timeout. If a
+  locator resolves and then keeps detaching, read `page.on("console")` before
+  touching the selector — the real message was
+  `TypeError: v is not iterable`.
+- **Envelope-vs-list is THE shape defect in this client, and only a browser
+  finds it.** Three of the four real bugs this story caught were the same
+  mistake: `/api/etymology-relations/trace/:word` answers `{tree, …}`,
+  `/api/cultural-lineages/{ancestors,descendants}/:id` answer
+  `{entityId, lineages, count}`, and `/api/languages` answers a **bare array**
+  where two pages expected `{items, count}`. Fixtures in the unit suites are
+  hand-written to the shape the component wants, so no vitest run can see any of
+  them. When adding a spec for a surface, probe its endpoint with `request.get`
+  first and read what actually comes back.
+- **Radix `SelectTrigger`s need an `aria-label`.** The quiz's setup pickers are
+  labelled by bare `<label>`s with no `htmlFor`, so the comboboxes had no
+  accessible name at all — for a screen reader or for
+  `getByRole("combobox", { name })`. Added rather than worked around.
