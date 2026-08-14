@@ -36,7 +36,7 @@
         "Any web/ or /api defect the real-data run exposes is fixed; `bun run check` (tsc over web/ + contracts) and `bun run test` (vitest) stay green, and `bun run check:scripts` passes if scripts/ is touched.",
         "The e2e run is wired so it is runnable in CI / by hand with the documented bring-up."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
