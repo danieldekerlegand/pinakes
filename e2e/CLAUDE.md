@@ -80,8 +80,10 @@ All TSV-backed, so it needs no graph.
   calls `test.skip(...)` in a `beforeEach` for the state it does not apply to.
   Why not `.or()`: "the gate is dimmed" and "the live control rendered real data"
   are mutually exclusive claims about the same DOM, and an `.or()` of them passes
-  whichever one regresses. The suite is green **both** ways — 15 passed / 4
-  skipped with the graph down, and the complementary 15/4 with it up.
+  whichever one regresses. The suite is green **both** ways — 37 passed / 4
+  skipped with the graph down, and the complementary 37/4 with it up (the two
+  runs skip *different* halves, so the equal totals do not prove the branch
+  flipped — read which tests ran).
 - **Run it against real data with `npm run test:e2e:graph`** (`scripts/e2e-graph.sh`):
   `graph-up.sh` → export the `graph-env.sh` variables → `playwright test`.
   `webServer.env` merges with `process.env`, which is how the service Playwright
@@ -138,6 +140,13 @@ All TSV-backed, so it needs no graph.
   (`?panel=explore&ds=…`) the flex content pane can resolve to 0 height, hiding the
   message (Playwright `toBeVisible` → "hidden"). The floor keeps the graph-down
   error legible to users and the test.
+
+> **The coverage record lives in
+> [`docs/browser-verification-coverage.md`](../docs/browser-verification-coverage.md)**
+> (pinakes:100 US-4) — every UI story mapped to the spec that proves it, the surfaces that are
+> still unit-tested only, and the corpus/`/api/data-quality` numbers the verified run was
+> measured against. The tables below stay here because they are spec-authoring guidance; that
+> file is what to cite when asked "is this surface production-verified?".
 
 ## What is deliberately NOT browser-covered (pinakes:100 US-3)
 

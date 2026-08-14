@@ -296,5 +296,8 @@ Steps 1–3 are `npm run graph:up`; 1–4 are `npm run dev:full`; 1–3 + 6–7 
 - [`docs/civilizations-neo4j-load.md`](./civilizations-neo4j-load.md) — the original load
   procedure and the csid-migration note (its inline counts are a period record).
 - [`docs/engine-integration.md`](./engine-integration.md) — the degradation contract.
+- [`docs/browser-verification-coverage.md`](./browser-verification-coverage.md) — **what this
+  bring-up proved**: which UI story each spec browser-verifies against the populated graph, and
+  which surfaces are still unit-tested only.
 - [`e2e/CLAUDE.md`](../e2e/CLAUDE.md) — the Playwright suite, which treats the graph as optional.
 - [`scripts/CLAUDE.md`](../scripts/CLAUDE.md) — the smoke test's design rules.
