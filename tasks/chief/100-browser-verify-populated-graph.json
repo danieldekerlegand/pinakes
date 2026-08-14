@@ -24,7 +24,7 @@
         "`bun run smoke:graph` passes against that populated graph and asserts non-empty results for the core domains (civilizations, sites, deities, writing systems, languages), not empty/fixture responses.",
         "A short docs/ runbook records the bring-up + the corpus load step so the verification is reproducible; `.chief/verify.sh` passes on the diff."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
