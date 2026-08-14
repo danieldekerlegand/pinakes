@@ -22,7 +22,7 @@ dialable participant.
 | Facet | Where it lives | Enforced by |
 |---|---|---|
 | **Identity** — the `pinakes` namespace, sole minting authority for it, the kinds minted under it, the external authorities anchored to | [`contracts/participant.json`](../contracts/participant.json) `identity`; the id scheme itself is [`docs/canonical-schema.md`](canonical-schema.md) §3/§3.1 | `assertValidParticipant` |
-| **Capability** — the served AgentCard and its `https://koine.dev/kcb/manifest/0.3` extension | [`contracts/capability-manifest.json`](../contracts/capability-manifest.json), served by `server/routes/{a2a,capability-bus}.ts` — full contract in [`docs/capability-bus.md`](capability-bus.md) | `assertValidCapabilityManifest` |
+| **Capability** — the served AgentCard and its `https://w3id.org/koine/kcb/manifest/0.3` extension | [`contracts/capability-manifest.json`](../contracts/capability-manifest.json), served by `server/routes/{a2a,capability-bus}.ts` — full contract in [`docs/capability-bus.md`](capability-bus.md) | `assertValidCapabilityManifest` |
 | **Egress** — which record classes may leave, the licence allowlist, and the `grounding-only` dialect every knowledge port emits | [`contracts/egress-policy.json`](../contracts/egress-policy.json) | `assertValidEgressPolicy` |
 | **Translation** — the bridge mappings, with per-entry dialect, egress and id-space rules | [`contracts/bridge-insimul.json`](../contracts/bridge-insimul.json) (Pinakes's own, for the one all-public integration) over [`contracts/predicate-mapping.json`](../contracts/predicate-mapping.json) (a re-vendored mirror of koine's registry — a mapping coins no relation name) | `assertValidBridgeMapping`, `assertValidPredicateMapping` |
 

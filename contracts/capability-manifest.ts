@@ -260,8 +260,16 @@ export const RESOLVER_IDENTITY = "pinakes:agent:resolver";
  * same declaration by `services/api/tests/test_agent_card.py`, so the three can
  * never drift apart silently. Was `server/routes/a2a.ts` until the cutover
  * (tasks/chief/80-cutover.json US-2).
+ *
+ * The namespace **root** moved at KCB 0.4.1 (§2.3): the legacy `koine.dev`
+ * hostname was verified unregistered, so the identifier now rides a `w3id.org`
+ * permanent identifier. Only the root changed — the path and the `0.3` version
+ * segment are byte-unchanged, and the two URIs name the same manifest family.
+ * Pinakes is a *producer*, and §2.3b says a producer MUST emit the current form
+ * (serving the legacy mirror alongside it is merely permitted, §2.3c), so this
+ * is the one URI the card carries. koine's participant schema enforces it.
  */
-export const KCB_MANIFEST_EXTENSION_URI = "https://koine.dev/kcb/manifest/0.3";
+export const KCB_MANIFEST_EXTENSION_URI = "https://w3id.org/koine/kcb/manifest/0.3";
 
 /** Look up one capability by name; `undefined` when absent. */
 export function capability(name: string): Capability | undefined {
